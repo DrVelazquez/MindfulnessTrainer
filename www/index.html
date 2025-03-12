@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="title">Meditation Trainer</title>
+  <!-- Google Fonts: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <!-- Chart.js CDN for progress graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Reset & Base Styles */
+    /* Reset & estilos base */
     * {
       margin: 0;
       padding: 0;
@@ -15,19 +17,120 @@
     }
     html, body {
       height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: #ffffff;
-      color: #222;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
+      color: #333;
       overflow-x: hidden;
     }
-    /* Smooth transitions for screens */
+
+    /* -- Banner SOLO en la pantalla 1 -- */
+    .home-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.95);
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    /* Barra de progreso con texto centrado */
+    .progress-container {
+      position: relative;
+      width: 200px;
+      height: 20px;
+      background: #B2DFDB;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: #00796B;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    /* Texto que siempre se muestra centrado encima de la barra */
+    .progress-text {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      line-height: 20px;
+      color: #fff;
+      pointer-events: none; /* Para que no interfiera en clics */
+    }
+    .level-info {
+      font-size: 12px;
+      color: #00796B;
+      text-align: center;
+    }
+
+    /* Toggle de idioma estilo iOS */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #00796B;
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+
+    /* Estilos generales de cada pantalla */
     .screen {
       display: none;
       opacity: 0;
       transition: opacity 0.5s ease-in-out;
-      padding: 20px;
-      min-height: 100vh;
-      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(224, 247, 250, 0.9);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       position: relative;
     }
     .active {
@@ -36,86 +139,102 @@
     }
     header {
       text-align: center;
-      margin-bottom: 20px;
-      position: relative;
+      margin-bottom: 30px;
     }
     h1, h2 {
-      font-weight: 300;
-      color: #222;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
     }
     p {
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.6;
-      color: #444;
+      color: #555;
+      margin-bottom: 15px;
     }
-    /* Minimalist rounded buttons con animaciones */
+    /* Botones */
     .button, .red-button {
       border: none;
-      color: #fff;
-      padding: 15px 30px;
-      font-size: 18px;
       border-radius: 30px;
       margin: 10px;
       cursor: pointer;
-      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: background 0.3s ease, transform 0.1s ease;
+      font-size: 16px;
+      padding: 12px 24px;
     }
     .button {
-      background: #444;
+      background: #fff;
+      border: 2px solid #3a3a3a;
+      color: #3a3a3a;
     }
     .button:hover {
-      background: #555;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+      background: #3a3a3a;
+      color: #fff;
+      transform: translateY(-2px);
     }
     .button:active {
-      transform: scale(0.98);
+      transform: translateY(0);
     }
-    /* Estilo para botón seleccionado */
     .button.selected {
-      background: #222;
+      background: #3a3a3a;
+      color: #fff;
     }
     .red-button {
-      background: #aa3333;
+      background: #ff6b6b;
+      color: #fff;
+      border: none;
     }
     .red-button:hover {
-      background: #bb4444;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+      background: #ff5252;
+      transform: translateY(-2px);
     }
     .red-button:active {
-      transform: scale(0.98);
+      transform: translateY(0);
     }
-    /* Language selector (aparece solo en la pantalla 1) */
-    .lang-selector {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .lang-selector select {
-      padding: 5px 10px;
-      font-size: 16px;
-      border-radius: 5px;
-    }
-    /* Explanation text blocks */
+    /* Bloques de explicación */
     .explanation {
-      background: #f7f7f7;
-      padding: 15px;
+      background: rgba(224, 247, 250, 0.8);
+      padding: 20px;
       border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       margin-bottom: 20px;
       text-align: center;
     }
-    /* Quote bubble styling */
-    .quote-bubble {
-      max-width: 90%;
-      margin: 20px auto;
-      padding: 20px;
-      background: #f7f7f7;
-      border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      font-size: 20px;
-      text-align: center;
-      color: #333;
+    /* Card slider para la pantalla inicial */
+    .card-slider {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
     }
-    /* Full screen tap area */
+    .card-content {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+      background: rgba(224, 247, 250, 0.9);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin: 0 10px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .arrow-button {
+      background: rgba(179, 229, 252, 0.8);
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .arrow-button:hover {
+      background: rgba(179, 229, 252, 1);
+    }
+    /* Área de toque para registrar distracciones */
     .tap-area {
       position: absolute;
       top: 15%;
@@ -126,17 +245,19 @@
       background: transparent;
       cursor: pointer;
     }
-    /* Timer & counter display */
+    /* Temporizador y contador */
     .timer-counter {
       position: absolute;
       top: 15px;
       width: 100%;
       text-align: center;
-      font-size: 24px;
-      z-index: 2;
-      color: #222;
+      font-size: 20px;
+      z-index: 10;
+      color: #333;
+      background: rgba(255,255,255,0.5);
+      padding: 5px 0;
     }
-    /* Option groups */
+    /* Opciones y grupos */
     .options {
       display: flex;
       flex-direction: column;
@@ -146,7 +267,7 @@
       margin: 20px 0;
       text-align: center;
     }
-    /* Table styling for history */
+    /* Tabla de historial */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -163,576 +284,1102 @@
     th {
       background: #f2f2f2;
     }
-    /* Graph container */
-    #historyGraph {
+    #historyContent {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    #historyContent::-webkit-scrollbar {
+      height: 8px;
+    }
+    #historyContent::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #historyContent::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.3);
+      border-radius: 4px;
+    }
+    #historyContent table {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+    }
+    /* Gráficos */
+    #historyGraph, #summaryGraph {
       max-width: 100%;
       margin: 20px auto;
     }
-    /* Estilo para el contenedor de navegación superior en el historial */
     .top-nav {
       text-align: center;
       margin-bottom: 20px;
     }
-    /* Media Query para móviles: botones con ancho completo y márgenes adecuados */
+    .reset-data {
+      font-size: 12px;
+      color: #800000;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 10px;
+    }
+    /* Media Queries */
     @media (max-width: 600px) {
-      .button {
+      .screen {
+        margin: 20px;
+        padding: 20px;
+      }
+      .button, .red-button {
         width: 90%;
         margin: 10px auto;
       }
       .red-button {
-        display: block;
-        margin: 70px auto 10px; /* Se centra y se separa del contador */
-        width: auto;
         padding: 10px 20px;
       }
+      .arrow-button {
+        font-size: 20px;
+        padding: 8px;
+      }
+    }
+    /* Pantalla 4: Meditación a pantalla completa */
+    #screen4.full-screen {
+      max-width: 100%;
+      margin: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      height: 100vh;
+      width: 100vw;
+      background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
+      position: relative;
+    }
+    #screen4.full-screen .tap-area {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: transparent;
+      cursor: pointer;
+    }
+    #screen4.full-screen .red-button {
+      position: relative;
+      z-index: 3;
+      margin: 20px;
+      margin-top: 70px;
+    }
+    /* Slider de duración */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 95%;
+      margin: 15px 0;
+      height: 8px;
+      background: #ddd;
+      border-radius: 5px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #3a3a3a;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: background 0.3s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      background: #555;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 50%;
+      background: #3a3a3a;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    /* Achievements */
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .badge-card {
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .badge-card.achieved {
+      border-color: #3a3a3a;
+      background: #e0ffe0;
+    }
+    .badge-card:hover {
+      transform: translateY(-5px);
+    }
+    .badge-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .badge-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .badge-desc {
+      font-size: 14px;
+      color: #555;
+    }
+    .level-display {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    /* Custom Popup Estilo */
+    .custom-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .custom-popup.active {
+      display: flex;
+    }
+    .custom-popup-content {
+      background: rgba(224, 247, 250, 0.9);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      max-width: 300px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
 
-  <!-- Pantalla 1: Pantalla de Bienvenida e Introducción -->
-  <div class="screen active" id="screen1">
-    <header>
-      <h1 data-i18n="title">Meditation Trainer</h1>
-    </header>
-    <!-- Selector de idioma (aparece solo en la pantalla 1) -->
-    <div class="lang-selector">
-      <select id="langSelector" onchange="setLanguage(this.value)">
-        <option value="en">English</option>
-        <option value="es">Español</option>
-      </select>
-    </div>
-    <div class="quote-bubble" id="quoteBubble">
-      <!-- Se insertará una cita de meditación aleatoria -->
-    </div>
-    <div class="explanation">
-      <p data-i18n="welcomeMsg">
-        Welcome! This app helps you train your mind by tracking distractions during meditation.
-      </p>
-      <!-- Texto adicional con el objetivo de la app -->
-      <p data-i18n="appObjective">
-        The goal of meditation is not to clear your mind, but to train it so that distractions decrease over time. Just like working out builds muscle, every time you notice your mind wandering and bring it back to the present, you’re training your “mental muscle.” This improvement can help you concentrate better in your daily activities, maintain calm in stressful moments, and enhance your overall well-being.
-      </p>
-    </div>
-    <div class="options">
-      <button class="button" onclick="goToScreen(2)" data-i18n="newSession">New Session</button>
-      <button class="button" onclick="goToScreen(6)" data-i18n="history">History</button>
-    </div>
-  </div>
+<!-- Pantalla 1: Bienvenida e Introducción -->
+<div class="screen active" id="screen1">
 
-  <!-- Pantalla 2: Configuración de la Sesión -->
-  <div class="screen" id="screen2">
-    <header>
-      <h2 data-i18n="newSessionHeader">New Meditation Session</h2>
-    </header>
-    <div class="explanation">
-      <p data-i18n="sessionSetupMsg">
-        Select your meditation duration and background sound. During your session, the entire screen is a big button—touch anywhere (even with your eyes closed) to record distractions.
-      </p>
-    </div>
-    <div class="options">
-      <!-- Selección de duración usando botones -->
-      <div class="option-group">
-        <p><strong data-i18n="selectDuration">Select Duration:</strong></p>
-        <button class="button" onclick="selectDuration(5)" data-group="duration" id="dur5">5 <span data-i18n="minutes">minutes</span></button>
-        <button class="button" onclick="selectDuration(10)" data-group="duration" id="dur10">10 <span data-i18n="minutes">minutes</span></button>
-        <button class="button" onclick="selectDuration(20)" data-group="duration" id="dur20">20 <span data-i18n="minutes">minutes</span></button>
-        <button class="button" onclick="selectDuration(30)" data-group="duration" id="dur30">30 <span data-i18n="minutes">minutes</span></button>
+  <!-- Banner SOLO en la pantalla 1 -->
+  <div class="home-banner">
+    <div class="progress-section">
+      <!-- Contenedor de la barra -->
+      <div class="progress-container">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-text" id="progressText">minutos meditados: 0/100</div>
       </div>
-      <!-- Selección de sonido usando botones -->
-      <div class="option-group">
-        <p><strong data-i18n="selectSound">Select Sound:</strong></p>
-        <button class="button" onclick="selectSound('ocean')" data-group="sound" id="soundOcean"><span data-i18n="ocean">Ocean</span></button>
-        <button class="button" onclick="selectSound('rain')" data-group="sound" id="soundRain"><span data-i18n="rain">Rain</span></button>
-        <button class="button" onclick="selectSound('music')" data-group="sound" id="soundMusic"><span data-i18n="music">Relaxing Music</span></button>
-        <button class="button" onclick="selectSound('silence')" data-group="sound" id="soundSilence"><span data-i18n="silence">Silence</span></button>
-      </div>
-      <button class="button" onclick="startSessionSetup()" data-i18n="continue">Continue</button>
+      <!-- Texto del nivel -->
+      <div class="level-info" id="levelInfo">Nivel: Novato</div>
+    </div>
+    <!-- Toggle de idioma en la esquina -->
+    <div class="lang-toggle">
+      <span>EN</span>
+      <label class="switch">
+        <input type="checkbox" id="langToggle" onchange="toggleLanguage(this.checked)">
+        <span class="slider"></span>
+      </label>
+      <span>ES</span>
     </div>
   </div>
 
-  <!-- Pantalla 3: Preparación & Explicación -->
-  <div class="screen" id="screen3">
-    <header>
-      <h2 data-i18n="preparationHeader">Preparation</h2>
-    </header>
-    <div class="explanation">
-      <p data-i18n="preparationMsg">
-        Before starting, take a deep breath. When you meditate, simply tap anywhere on the screen each time you notice a distraction. Your progress is measured by these taps. When the timer ends, a gentle alarm will sound.
-      </p>
-    </div>
-    <div class="options" style="text-align:center;">
-      <button class="button" onclick="goToScreen(4)" data-i18n="startMeditation">Start Meditation</button>
-    </div>
+  <header>
+    <h1 data-i18n="title">Meditation Trainer</h1>
+  </header>
+
+  <!-- Card slider con flechitas -->
+  <div class="card-slider">
+    <button class="arrow-button" onclick="prevCard()">&#10094;</button>
+    <div id="cardContent" class="card-content"></div>
+    <button class="arrow-button" onclick="nextCard()">&#10095;</button>
   </div>
 
-  <!-- Pantalla 4: Temporizador y Contador de Distracciones -->
-  <div class="screen" id="screen4">
-    <div class="timer-counter">
-      <span id="timerDisplay">00:00</span> | <span data-i18n="distractions">Distractions</span>: <span id="tapCount">0</span>
-    </div>
-    <button class="red-button" onclick="endSessionEarly()" data-i18n="stopSession">Stop Session</button>
-    <!-- Toda la pantalla es un botón táctil -->
-    <div class="tap-area" onclick="recordTap()"></div>
+  <div class="options">
+    <button class="button" onclick="goToScreen(2)" data-i18n="newSession">Nueva Sesión</button>
+    <button class="button" onclick="goToScreen(6)" data-i18n="history">Historial</button>
+    <button class="button" onclick="goToScreen(7)" data-i18n="achievements">Insignias</button>
   </div>
+</div>
 
-  <!-- Pantalla 5: Resumen de la Sesión -->
-  <div class="screen" id="screen5">
-    <header>
-      <h2 data-i18n="summaryHeader">Session Summary</h2>
-    </header>
-    <div class="explanation">
-      <p data-i18n="summaryMsg">
-        Review your session results. With practice, you'll notice fewer distractions and your progress will show improvement.
-      </p>
+<!-- Pantalla 2: Configuración de la Sesión -->
+<div class="screen" id="screen2">
+  <header>
+    <h2 data-i18n="newSessionHeader">Nueva Sesión de Meditación</h2>
+  </header>
+  <div class="explanation">
+    <p data-i18n="sessionSetupMsg">
+      Elige la duración y el sonido de fondo. Luego toca en cualquier parte durante la meditación para contar distracciones.
+    </p>
+  </div>
+  <div class="options">
+    <div class="option-group">
+      <p><strong data-i18n="selectDuration">Selecciona Duración:</strong></p>
+      <input type="range" id="durationSlider" min="5" max="60" step="5" value="5" oninput="updateDurationDisplay(this.value)">
+      <div id="durationDisplay">5 <span data-i18n="minutes">minutos</span></div>
     </div>
-    <div class="options" style="text-align:center;">
-      <p id="sessionLength"></p>
-      <p><span data-i18n="distractions">Distractions</span>: <span id="sessionTaps"></span></p>
-      <p><span data-i18n="avgInterval">Average Time Between Distractions</span>: <span id="avgInterval"></span> seconds</p>
-      <p><strong data-i18n="encouragement">
-        Keep practicing—you’ll soon see your numbers improve!
-      </strong></p>
-      <!-- Botones para navegación -->
-      <button class="button" onclick="goHome()" data-i18n="backHome">Back to Home</button>
-      <button class="button" onclick="goToScreen(6)" data-i18n="viewHistory">View History</button>
+    <div class="option-group">
+      <p><strong data-i18n="selectSound">Selecciona Sonido:</strong></p>
+      <button class="button" onclick="selectSound('ocean')" data-group="sound" id="soundOcean"><span data-i18n="ocean">Océano</span></button>
+      <button class="button" onclick="selectSound('rain')" data-group="sound" id="soundRain"><span data-i18n="rain">Lluvia</span></button>
+      <button class="button" onclick="selectSound('music')" data-group="sound" id="soundMusic"><span data-i18n="music">Música Relajante</span></button>
+      <button class="button" onclick="selectSound('silence')" data-group="sound" id="soundSilence"><span data-i18n="silence">Silencio</span></button>
+    </div>
+    <button class="button" onclick="startSessionSetup()" data-i18n="continue">Continuar</button>
+    <!-- Nuevo botón para volver al inicio -->
+    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
+  </div>
+</div>
+
+
+<!-- Pantalla 4: Meditación a pantalla completa -->
+<div class="screen full-screen" id="screen4">
+  <div class="timer-counter">
+    <span id="timerDisplay">00:00</span> | <span data-i18n="distractions">Distracciones</span>: <span id="tapCount">0</span>
+  </div>
+  <button class="red-button" onclick="endSessionEarly()" data-i18n="stopSession">Detener Sesión</button>
+  <div class="tap-area" onclick="recordTap()"></div>
+</div>
+
+<!-- Pantalla 5: Resumen de la Sesión y gráfico -->
+<div class="screen" id="screen5">
+  <header>
+    <h2 data-i18n="summaryHeader">Resumen de la Sesión</h2>
+  </header>
+  <div class="explanation">
+    <p data-i18n="summaryMsg">
+      Revisa los resultados de tu sesión. Con la práctica notarás menos distracciones y mayor enfoque.
+    </p>
+  </div>
+  <div class="options" style="text-align:center;">
+    <p id="sessionLength"></p>
+    <p><span data-i18n="distractions">Distracciones</span>: <span id="sessionTaps"></span></p>
+    <p><span data-i18n="avgInterval">Tiempo Promedio Entre Distracciones</span>: <span id="avgInterval"></span> segundos</p>
+    <p><strong data-i18n="encouragement">
+      ¡Sigue practicando, pronto verás mejoras!
+    </strong></p>
+    <canvas id="summaryGraph" width="400" height="200"></canvas>
+    <p id="graphExplanation" data-i18n="graphExplanation"></p>
+    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
+    <button class="button" onclick="goToScreen(6)" data-i18n="viewHistory">Ver Historial</button>
+    <!-- Nuevo botón para ir a la página de insignias -->
+    <button class="button" onclick="goToScreen(7)" data-i18n="viewBadges">Ver Insignias</button>
+  </div>
+</div>
+
+<!-- Pantalla 6: Historial y gráfico -->
+<div class="screen" id="screen6">
+  <header>
+    <h2 data-i18n="historyHeader">Historial</h2>
+  </header>
+  <div class="top-nav">
+    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
+  </div>
+  <div class="explanation">
+    <p data-i18n="historyMsg">Revisa tus sesiones pasadas y sigue tu progreso.</p>
+  </div>
+  <div class="options">
+    <canvas id="historyGraph" width="400" height="200"></canvas>
+    <div id="historyContent"></div>
+   <div class="reset-data" onclick="showResetDataPopup()">
+  <span data-i18n="resetData">Borrar Datos</span>
     </div>
   </div>
+</div>
 
-  <!-- Pantalla 6: Historial y Gráfico de Progreso -->
-  <div class="screen" id="screen6">
-    <header>
-      <h2 data-i18n="historyHeader">History</h2>
-    </header>
-    <!-- Contenedor superior para el botón de volver al inicio -->
-    <div class="top-nav">
-      <button class="button" onclick="goHome()" data-i18n="backHome">Back to Home</button>
-    </div>
-    <div class="explanation">
-      <p data-i18n="historyMsg">
-        Review your past sessions and track your progress over time.
-      </p>
-    </div>
-    <div class="options">
-      <!-- El gráfico se muestra primero -->
-      <canvas id="historyGraph" width="400" height="200"></canvas>
-      <!-- Botón para borrar historial debajo del gráfico -->
-      <button class="button" onclick="clearHistory()" data-i18n="clearHistory">Clear History</button>
-      <!-- Luego se muestra la lista de entrenamientos -->
-      <div id="historyContent">
-        <!-- Se insertará la tabla de sesiones pasadas -->
-      </div>
+<!-- Pantalla 7: Insignias -->
+<div class="screen" id="screen7">
+  <header>
+    <h2 data-i18n="achievements">Insignias</h2>
+  </header>
+  <div class="level-display" id="levelDisplay"></div>
+  <div class="explanation">
+    <p data-i18n="achievementsDesc">
+      Desbloquea insignias conforme avanzas. ¡Sigue meditando para ganar puntos y subir de nivel!
+    </p>
+  </div>
+  <div class="badge-grid" id="badgesContainer"></div>
+  <div class="options" style="text-align:center;">
+    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
+  </div>
+</div>
+
+<!-- Custom Popup Modal -->
+<div id="customPopup" class="custom-popup">
+  <div class="custom-popup-content">
+    <p id="popupMessage"></p>
+    <div style="margin-top: 20px;">
+      <button class="button" id="popupConfirm"></button>
+      <button class="red-button" id="popupCancel"></button>
     </div>
   </div>
+</div>
 
-  <script>
-    /*********** Traducciones ***********/
-    const translations = {
-      en: {
-        title: "Meditation Trainer",
-        welcomeMsg: "Welcome! This app helps you train your mind by tracking distractions during meditation.",
-        appObjective: "The goal of meditation is not to clear your mind, but to train it so that distractions decrease over time. Just like working out builds muscle, every time you notice your mind wandering and bring it back to the present, you’re training your “mental muscle.” This improvement can help you concentrate better in your daily activities, maintain calm in stressful moments, and enhance your overall well-being.",
-        newSession: "New Session",
-        history: "History",
-        newSessionHeader: "New Meditation Session",
-        sessionSetupMsg: "Select your meditation duration and background sound. During your session, the entire screen is a big button—touch anywhere (even with your eyes closed) to record distractions.",
-        selectDuration: "Select Duration:",
-        minutes: "minutes",
-        selectSound: "Select Sound:",
-        ocean: "Ocean",
-        rain: "Rain",
-        music: "Relaxing Music",
-        silence: "Silence",
-        continue: "Continue",
-        preparationHeader: "Preparation",
-        preparationMsg: "Before starting, take a deep breath. When you meditate, simply tap anywhere on the screen each time you notice a distraction. Your progress is measured by these taps. When the timer ends, a gentle alarm will sound.",
-        startMeditation: "Start Meditation",
-        distractions: "Distractions",
-        stopSession: "Stop Session",
-        exitWarning: "Are you sure you want to end the session early?",
-        summaryHeader: "Session Summary",
-        summaryMsg: "Review your session results. With practice, you'll notice fewer distractions and your progress will show improvement.",
-        avgInterval: "Average Time Between Distractions",
-        encouragement: "Keep practicing—you’ll soon see your numbers improve!",
-        backHome: "Back to Home",
-        historyHeader: "History",
-        historyMsg: "Review your past sessions and track your progress over time.",
-        clearHistory: "Clear History",
-        viewHistory: "View History",
-        confirmClearHistory: "Are you sure you want to clear your history?"
-      },
-      es: {
-        title: "Entrenador de Meditación",
-        welcomeMsg: "¡Bienvenido! Esta aplicación te ayuda a entrenar tu mente al registrar distracciones durante la meditación.",
-        appObjective: "El objetivo de la meditación no es dejar la mente en blanco, sino entrenarla para que las distracciones disminuyan con el tiempo. Al igual que en el gimnasio se entrena un músculo, cada vez que te das cuenta de que se te fue la mente y la traes de vuelta al presente, estás fortaleciendo tu “músculo mental.” Esto te ayudará a concentrarte mejor en tus actividades diarias, a mantener la calma en momentos de tensión y a mejorar tu bienestar general.",
-        newSession: "Nueva Sesión",
-        history: "Historial",
-        newSessionHeader: "Nueva Sesión de Meditación",
-        sessionSetupMsg: "Selecciona la duración y el sonido de fondo para meditar. Durante la sesión, la pantalla completa actúa como un gran botón: toca en cualquier parte (incluso con los ojos cerrados) para registrar distracciones.",
-        selectDuration: "Selecciona Duración:",
-        minutes: "minutos",
-        selectSound: "Selecciona Sonido:",
-        ocean: "Océano",
-        rain: "Lluvia",
-        music: "Música Relajante",
-        silence: "Silencio",
-        continue: "Continuar",
-        preparationHeader: "Preparación",
-        preparationMsg: "Antes de comenzar, toma una respiración profunda. Cuando medites, simplemente toca en cualquier parte de la pantalla cada vez que notes una distracción. Tu progreso se medirá con estos toques. Cuando el temporizador termine, sonará una alarma suave.",
-        startMeditation: "Iniciar Meditación",
-        distractions: "Distracciones",
-        stopSession: "Detener Sesión",
-        exitWarning: "¿Estás seguro de que deseas finalizar la sesión anticipadamente?",
-        summaryHeader: "Resumen de la Sesión",
-        summaryMsg: "Revisa los resultados de tu sesión. Con la práctica, notarás menos distracciones y se reflejará tu progreso.",
-        avgInterval: "Tiempo Promedio Entre Distracciones",
-        encouragement: "¡Sigue practicando—pronto verás cómo mejoran tus números!",
-        backHome: "Volver al Inicio",
-        historyHeader: "Historial",
-        historyMsg: "Revisa tus sesiones pasadas y sigue tu progreso a lo largo del tiempo.",
-        clearHistory: "Borrar historial",
-        viewHistory: "Ver historial",
-        confirmClearHistory: "¿Estás seguro de que deseas borrar el historial?"
+<script>
+  /*********** Traducciones ***********/
+  const translations = {
+    en: {
+      title: "Meditation Trainer",
+      welcomeSlide1: "Welcome to Meditation Trainer. Track your meditation to boost focus.",
+      welcomeSlide2: "Meditation reduces stress and improves your well-being.",
+      welcomeSlide3: "Studies show meditation can reshape your brain for the better.",
+      welcomeSlide4: "Meditate daily – 5 minutes a day beats 1 hour a week. Notice changes in days!",
+      newSession: "▶️ New Session",
+      newSessionHeader: "New Meditation Session",
+      history: "📅 History",
+      achievements: "🥇 Achievements",
+      sessionSetupMsg: "Choose a session duration and a background sound. Then tap anywhere during meditation to count distractions.",
+      selectDuration: "Select Duration:",
+      minutes: "minutes",
+      selectSound: "Select Sound:",
+      ocean: "Ocean",
+      rain: "Rain",
+      music: "Relaxing Music",
+      silence: "Silence",
+      continue: "Continue",
+      distractions: "Distractions",
+      stopSession: "Stop Session",
+      exitWarning: "Are you sure you want to end the session early?",
+      summaryHeader: "Session Summary",
+      summaryMsg: "Review your session results. With practice, you'll notice fewer distractions and improved focus.",
+      avgInterval: "Average Time Between Distractions",
+      encouragement: "Keep practicing—you’ll soon see improvement!",
+      backHome: "Back to Home",
+      viewHistory: "📅 View History",
+      viewBadges: "🥇 View Badges",
+      resetData: "Reset Data",
+      resetDataConfirm: "Are you sure you want to reset all data?",
+      resetDataAlert: "All data has been reset.",
+      graphExplanation: "The higher the graph, the better",
+      historyHeader: "History",
+      historyMsg: "Review your past sessions and track your progress.",
+      achievementsDesc: "Unlock badges as you progress. Keep meditating to earn points and level up!",
+      confirm: "Yes",
+      cancel: "No"
+    },
+    es: {
+      title: "Entrenador de Meditación",
+     welcomeSlide1: "Bienvenido a Entrenador de Meditación. Una herramienta diseñada para ayudarte a entrenar tu mente y desarrollar el hábito de meditar de forma efectiva.",
+welcomeSlide2: "La meditación no es ‘poner la mente en blanco’. Es entrenar tu atención. Puedes enfocarte en tu respiración, tu cuerpo o lo que te rodea.",
+welcomeSlide3: "Tu mente se va a distraer. Es normal. Pero cada vez que notes que se desvió y la traigas de vuelta, estarás progresando. Así es como entrenas.",
+welcomeSlide4: "Está científicamente comprobado: la meditación cambia físicamente tu cerebro. Aumenta la materia gris en áreas clave como la memoria, la concentración y la gestión del estrés.",
+welcomeSlide5: "Nuestra app no solo mide el tiempo que meditas, sino cómo evoluciona tu concentración. Lleva un registro de tus distracciones y te muestra cómo cada sesión mejoras.",
+welcomeSlide6: "La clave está en la constancia: 10 minutos al día son más efectivos que una hora a la semana. Un poco cada día transforma tu mente y tu vida.",
+welcomeSlide7: "Con el tiempo, verás cómo tu mente se distrae menos y tu enfoque se fortalece. Meditar deja de ser un desafío y se convierte en un superpoder.",
+welcomeSlide8: "Empieza hoy. Entrena tu atención, reduce el estrés y transforma tu bienestar con solo unos minutos al día.",
+      newSession: "▶️ Nueva Sesión",
+      newSessionHeader: "Nueva Sesión de Meditación",
+      history: "📅 Historial",
+      achievements: "🥇 Insignias",
+      sessionSetupMsg: "Elige la duración y el sonido de fondo. Luego toca en cualquier parte durante la meditación para contar distracciones.",
+      selectDuration: "Selecciona Duración:",
+      minutes: "minutos",
+      selectSound: "Selecciona Sonido:",
+      ocean: "Océano",
+      rain: "Lluvia",
+      music: "Música Relajante",
+      silence: "Silencio",
+      continue: "Continuar",
+      distractions: "Distracciones",
+      stopSession: "Detener Sesión",
+      exitWarning: "¿Estás seguro de que deseas finalizar la sesión anticipadamente?",
+      summaryHeader: "Resumen de la Sesión",
+      summaryMsg: "Revisa los resultados de tu sesión. Con la práctica notarás menos distracciones y mayor enfoque.",
+      avgInterval: "Tiempo Promedio Entre Distracciones",
+      encouragement: "¡Sigue practicando, pronto verás mejoras!",
+      backHome: "Volver al Inicio",
+      viewHistory: "📅 Ver Historial",
+      viewBadges: "🥇 Ver Insignias",
+      resetData: "Borrar Datos",
+      resetDataConfirm: "¿Estás seguro de que deseas borrar todos los datos?",
+      resetDataAlert: "Todos los datos han sido borrados.",
+      graphExplanation: "Mientras más alto el gráfico, mejor",
+      historyHeader: "Historial",
+      historyMsg: "Revisa tus sesiones pasadas y sigue tu progreso.",
+      achievementsDesc: "Desbloquea insignias conforme avanzas. ¡Sigue meditando para ganar puntos y subir de nivel!",
+      confirm: "Sí",
+      cancel: "No"
+    }
+  };
+
+  // Textos para el card slider
+  const meditationQuotes = {
+  en: [
+  "Welcome to Meditation Trainer!\n\n💡 A powerful tool to train your mind and build the habit of meditation.",
+  "Meditation is NOT about blanking your mind!\n\n👉 It’s about honing your attention. Focus on your breath, your body, or your surroundings.",
+  "Your mind will wander...\n\n😌 And that’s completely normal!\nEach time you notice it drifting and bring it back,\nyou’re strengthening your focus.",
+  "Track Your Progress:\n\n📈 The goal of our app is to monitor your distractions and show your progress, session by session.",
+  "Science Proves It:\n\n🔬 Meditation transforms your brain by boosting gray matter\nin key areas like memory, focus, and stress management.",
+  "Consistency is Key!\n\n⏱️ Just 10 minutes a day is more effective than one hour a week.\nSmall daily steps make a huge difference.",
+  "Watch Your Focus Grow:\n\n🔥 Over time, you’ll notice fewer distractions and a stronger focus.\nMeditation turns into a superpower that transforms your life.",
+  "Start Today!\n\n🚀 Train your attention, reduce stress, and boost your well-being\nwith just a few minutes a day."
+],
+es: [
+  "¡Bienvenido a Entrenador de Meditación!\n\n💡 Una herramienta poderosa para entrenar tu mente y formar el hábito de meditar.",
+  "¡La meditación NO es poner la mente en blanco!\n\n👉 Se trata de afinar tu atención. Enfócate en tu respiración, tu cuerpo o en lo que te rodea.",
+  "Tu mente se distraerá...\n\n😌 ¡Y eso es totalmente normal!\nCada vez que notes la distracción y la recobres,\nestarás fortaleciendo tu concentración.",
+  "Lleva un Registro de Tu Progreso:\n\n📈 El objetivo de nuestra app es ese: registrar tus distracciones y mostrarte tu progreso en cada sesión.",
+  "Comprobado Científicamente:\n\n🔬 La meditación transforma tu cerebro al aumentar la materia gris\nen áreas clave como la memoria, el enfoque y la gestión del estrés.",
+  "¡La Constancia es la Clave!\n\n⏱️ Solo 10 minutos al día son más efectivos que una hora a la semana.\nPequeños pasos diarios hacen una gran diferencia.",
+  "Observa Cómo Crece Tu Enfoque:\n\n🔥 Con el tiempo, verás menos distracciones y un enfoque más fuerte.\nLa meditación se convierte en un superpoder que transforma tu vida.",
+  "¡Empieza Hoy!\n\n🚀 Entrena tu atención, reduce el estrés y eleva tu bienestar\ncon solo unos minutos al día."
+]
+
+  };
+  
+  
+
+  // Definición de insignias (badges)
+  const badgeDefinitions = [
+    { id: 1, title_en: "First Meditation", title_es: "Primera Meditación", icon: "🌱", description_en: "Complete your first meditation session.", description_es: "Completa tu primera sesión de meditación.", condition: (stats) => stats.totalSessions >= 1 },
+    { id: 2, title_en: "3-Day Streak", title_es: "Racha de 3 Días", icon: "📅", description_en: "Meditate for 3 consecutive days.", description_es: "Medita 3 días consecutivos.", condition: (stats) => stats.maxStreak >= 3 },
+    { id: 3, title_en: "7-Day Streak", title_es: "Racha de 7 Días", icon: "7️⃣", description_en: "Meditate for 7 consecutive days.", description_es: "Medita 7 días consecutivos.", condition: (stats) => stats.maxStreak >= 7 },
+    { id: 4, title_en: "15-Day Streak", title_es: "Racha de 15 Días", icon: "1️⃣5️⃣", description_en: "Meditate for 15 consecutive days.", description_es: "Medita 15 días consecutivos.", condition: (stats) => stats.maxStreak >= 15 },
+    { id: 5, title_en: "30-Day Streak", title_es: "Racha de 30 Días", icon: "3️⃣0️⃣", description_en: "Meditate for 30 consecutive days.", description_es: "Medita 30 días consecutivos.", condition: (stats) => stats.maxStreak >= 30 },
+    { id: 6, title_en: "Long Meditation", title_es: "Meditación Larga", icon: "⏱️", description_en: "Complete a session lasting 45 minutes or more.", description_es: "Completa una sesión de 45 minutos o más.", condition: (stats) => stats.longMeditationCount >= 1 },
+    { id: 7, title_en: "Focused Mind", title_es: "Mente Enfocada", icon: "🎯", description_en: "Achieve a session with 1 or fewer distractions.", description_es: "Logra una sesión con 1 o menos distracciones.", condition: (stats) => stats.focusedSessionCount >= 1 },
+    { id: 8, title_en: "Silent Mind", title_es: "Mente Silenciosa", icon: "🤫", description_en: "Complete a session with zero distractions.", description_es: "Completa una sesión sin distracciones.", condition: (stats) => stats.silentSessionCount >= 1 },
+    { id: 9, title_en: "Five Long Meditations", title_es: "Cinco Meditaciones Largas", icon: "5️⃣", description_en: "Complete 5 sessions of at least 30 minutes.", description_es: "Completa 5 sesiones de al menos 30 minutos.", condition: (stats) => stats.long30Count >= 5 },
+    { id: 10, title_en: "Consistency", title_es: "Constancia", icon: "🏆", description_en: "Complete 10 meditation sessions.", description_es: "Completa 10 sesiones de meditación.", condition: (stats) => stats.totalSessions >= 10 },
+    { id: 11, title_en: "Meditation Master", title_es: "Maestro de la Meditación", icon: "🥇", description_en: "Complete 50 meditation sessions.", description_es: "Completa 50 sesiones de meditación.", condition: (stats) => stats.totalSessions >= 50 },
+    { id: 12, title_en: "Meditation Marathon", title_es: "Maratón de Meditación", icon: "⏳", description_en: "Accumulate 300 minutes of meditation.", description_es: "Acumula 300 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 300 },
+    { id: 13, title_en: "Meditation God", title_es: "Dios de la Meditación", icon: "🙏", description_en: "Accumulate 600 minutes of meditation.", description_es: "Acumula 600 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 600 },
+    { id: 14, title_en: "Buddha", title_es: "Buddha", icon: "🧘", description_en: "Accumulate 900 minutes of meditation.", description_es: "Acumula 900 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 900 },
+    { id: 15, title_en: "Committed", title_es: "Comprometido", icon: "💪", description_en: "Meditate at least one hour a day for 7 consecutive days.", description_es: "Medita al menos una hora diaria durante 7 días consecutivos.", condition: (stats) => stats.hourStreak >= 7 }
+  ];
+
+  // Declaración global para Wake Lock
+  let wakeLock = null;
+
+  // Variables para el card slider
+  let cardTexts = [];
+  let currentCardIndex = 0;
+  function updateCardContent() {
+    document.getElementById("cardContent").innerText = cardTexts[currentCardIndex];
+  }
+  function nextCard() {
+    currentCardIndex = (currentCardIndex + 1) % cardTexts.length;
+    updateCardContent();
+  }
+  function prevCard() {
+    currentCardIndex = (currentCardIndex - 1 + cardTexts.length) % cardTexts.length;
+    updateCardContent();
+  }
+
+  const browserLang = navigator.language.slice(0,2);
+  let lang = translations[browserLang] ? browserLang : "en";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Inicializa el toggle según el idioma
+    document.getElementById("langToggle").checked = (lang === "es");
+    
+    updateDurationDisplay(document.getElementById("durationSlider").value);
+    
+    // Inicializa los textos del card slider
+    cardTexts = meditationQuotes[lang];
+    
+    updateCardContent();
+    goToScreen(1);
+  });
+
+  // Actualiza la barra de progreso y el nivel
+  function updateHomeLevelDisplay() {
+    let points = Math.floor(parseFloat(localStorage.getItem("userPoints")) || 0);
+    // Definición de niveles y umbrales
+    const levels = [
+      { key: "Rookie", en: "Rookie", es: "Novato", min: 0, max: 100 },
+      { key: "Intermediate", en: "Intermediate", es: "Intermedio", min: 100, max: 400 },
+      { key: "Meditation God", en: "Meditation God", es: "Dios de la Meditación", min: 400, max: 1200 },
+      { key: "Buddha", en: "Buddha", es: "Buddha", min: 1200, max: Infinity }
+    ];
+    let currentLevel = levels.find(l => points < l.max) || levels[levels.length-1];
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+    const levelInfo = document.getElementById("levelInfo");
+
+    // Calcula el porcentaje para la barra
+    let percent = Math.min(100, ((points - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100);
+    progressFill.style.width = percent + "%";
+
+    // Texto: "minutos meditados: X/Y"
+    progressText.textContent = (lang === "es" ? "minutos meditados: " : "meditated minutes: ")
+                              + points + "/" + (currentLevel.max === Infinity ? "∞" : currentLevel.max);
+
+    // Nivel: "Nivel: Novato" o "Nivel: Rookie"
+    levelInfo.textContent = (lang === "es" ? "Nivel: " : "Level: ")
+                            + (lang === "es" ? currentLevel.es : currentLevel.en);
+  }
+
+  function updateTranslations() {
+    document.querySelectorAll("[data-i18n]").forEach(elem => {
+      const key = elem.getAttribute("data-i18n");
+      if (translations[lang][key]) {
+        elem.textContent = translations[lang][key];
       }
-    };
-
-    const browserLang = navigator.language.slice(0,2);
-    let lang = translations[browserLang] ? browserLang : "en";
-
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("langSelector").value = lang;
     });
-
-    function updateTranslations() {
-      document.querySelectorAll("[data-i18n]").forEach(elem => {
-        const key = elem.getAttribute("data-i18n");
-        if (translations[lang][key]) {
-          elem.textContent = translations[lang][key];
-        }
-      });
-      document.title = translations[lang].title;
+    document.title = translations[lang].title;
+    if(document.getElementById("durationSlider")){
+      document.getElementById("durationDisplay").innerHTML = document.getElementById("durationSlider").value + " " + translations[lang].minutes;
     }
+    cardTexts = meditationQuotes[lang];
+    updateCardContent();
+  }
 
-    function setLanguage(selectedLang) {
-      if (translations[selectedLang]) {
-        lang = selectedLang;
-        updateTranslations();
-        if(document.getElementById('historyContent').innerHTML !== ""){
-          loadHistory();
-        }
-        loadRandomQuote();
-      }
-    }
-
-    let sessionDuration = 0;
-    let timerInterval;
-    let timeRemaining = 0;
-    let tapCounter = 0;
-    let tapTimestamps = [];
-    let sessionStartTime;
-    let audioAlarm;
-    let audioBackground;
-    let meditationStarted = false;
-    let backgroundSound = "silence";
-
-    let selectedDuration = null;
-    let selectedSound = "silence";
-
-    const meditationQuotes = {
-      en: [
-        "“The quieter you become, the more you can hear.” – Ram Dass",
-        "“Meditation is not evasion; it is a serene encounter with reality.” – Thích Nhất Hạnh",
-        "“The mind is everything; what you think, you become.” – Buddha",
-        "“Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.” – Buddha",
-        "“Quiet the mind, and the soul will speak.” – Ma Jaya Sati Bhagavati"
-      ],
-      es: [
-        "“Mientras más callado estés, más oirás.” – Ram Dass",
-        "“La meditación no es evasión; es un encuentro sereno con la realidad.” – Thích Nhất Hạnh",
-        "“La mente lo es todo; en lo que piensas, te conviertes.” – Buda",
-        "“No te detengas en el pasado ni sueñes con el futuro, concéntrate en el presente.” – Buda",
-        "“Calma la mente y el alma hablará.” – Ma Jaya Sati Bhagavati"
-      ]
-    };
-
-    function loadRandomQuote() {
-      const quotesArray = meditationQuotes[lang] || meditationQuotes["en"];
-      const randomQuote = quotesArray[Math.floor(Math.random() * quotesArray.length)];
-      document.getElementById("quoteBubble").textContent = randomQuote;
-    }
-
-    function goToScreen(screenNumber) {
-      document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-      });
-      // Se omite mostrar/ocultar botón flotante, ya que se utilizan botones integrados en cada pantalla.
-      if(screenNumber === 1){
-        meditationStarted = false;
-      }
-      const selectedScreen = document.getElementById(`screen${screenNumber}`);
-      selectedScreen.classList.add('active');
-      if (screenNumber === 1) {
-        loadRandomQuote();
-      }
-      if (screenNumber === 6) {
+  function setLanguage(selectedLang) {
+    if (translations[selectedLang]) {
+      lang = selectedLang;
+      updateTranslations();
+      if(document.getElementById('historyContent').innerHTML !== ""){
         loadHistory();
       }
+      updateHomeLevelDisplay();
     }
-    function goHome() {
-      if (timerInterval) clearInterval(timerInterval);
-      stopAlarm();
-      stopBackgroundSound();
-      goToScreen(1);
-    }
+  }
+  
+  // Función para el toggle de idioma: false = en, true = es
+  function toggleLanguage(isEs) {
+    setLanguage(isEs ? "es" : "en");
+  }
 
-    function clearSelection(group) {
-      document.querySelectorAll(`.option-group button[data-group="${group}"]`).forEach(btn => {
-        btn.classList.remove('selected');
+  function updateDurationDisplay(val) {
+    selectedDuration = parseInt(val);
+    document.getElementById("durationDisplay").innerHTML = val + " " + translations[lang].minutes;
+  }
+
+  function goToScreen(screenNumber) {
+    document.querySelectorAll('.screen').forEach(screen => {
+      screen.classList.remove('active');
+    });
+    if(screenNumber === 1){
+      meditationStarted = false;
+      updateHomeLevelDisplay();
+    }
+    const selectedScreen = document.getElementById(`screen${screenNumber}`);
+    selectedScreen.classList.add('active');
+    if (screenNumber === 6) {
+      loadHistory();
+    }
+    if (screenNumber === 7) {
+      updateUserLevelDisplay();
+      renderAchievements();
+    }
+  }
+
+  function goHome() {
+    try { if (timerInterval) clearInterval(timerInterval); } catch(e) { console.error(e); }
+    try { stopAlarm(); } catch(e) { console.error(e); }
+    try { stopBackgroundSound(); } catch(e) { console.error(e); }
+    try { releaseWakeLock(); } catch(e) { console.error(e); }
+    goToScreen(1);
+  }
+
+  function clearSelection(group) {
+    document.querySelectorAll(`.option-group button[data-group="${group}"]`).forEach(btn => {
+      btn.classList.remove('selected');
+    });
+  }
+
+  function selectSound(soundType) {
+    selectedSound = soundType;
+    clearSelection('sound');
+    switch(soundType){
+      case "ocean":
+        document.getElementById("soundOcean").classList.add('selected');
+        break;
+      case "rain":
+        document.getElementById("soundRain").classList.add('selected');
+        break;
+      case "music":
+        document.getElementById("soundMusic").classList.add('selected');
+        break;
+      case "silence":
+        document.getElementById("soundSilence").classList.add('selected');
+        break;
+    }
+  }
+
+  let sessionDuration = 0;
+  let timerInterval;
+  let timeRemaining = 0;
+  let tapCounter = 0;
+  let tapTimestamps = [];
+  let sessionStartTime;
+  let audioAlarm;
+  let audioBackground;
+  let meditationStarted = false;
+  let backgroundSound = "silence";
+
+  let selectedDuration = 5;
+  let selectedSound = "silence";
+
+  function startSessionSetup() {
+    if (!selectedDuration) {
+      alert(translations[lang].selectDuration + " " + translations[lang].minutes);
+      return;
+    }
+    sessionDuration = selectedDuration * 60;
+    backgroundSound = selectedSound;
+    goToScreen(4);
+  }
+
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log("Wake Lock activado");
+      } catch (err) {
+        console.error(`Error al solicitar Wake Lock: ${err.name}, ${err.message}`);
+      }
+    }
+  }
+  function releaseWakeLock() {
+    if (wakeLock !== null) {
+      wakeLock.release().then(() => {
+        wakeLock = null;
+        console.log("Wake Lock liberado");
       });
     }
+  }
 
-    function selectDuration(minutes) {
-      selectedDuration = minutes;
-      clearSelection('duration');
-      document.getElementById(`dur${minutes}`).classList.add('selected');
+  function preloadAlarm() {
+    if (!audioAlarm) {
+      audioAlarm = new Audio("https://cdn.glitch.global/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/alarm.mp3?v=1738962246785");
+      audioAlarm.preload = "auto";
+      audioAlarm.load();
     }
+  }
 
-    function selectSound(soundType) {
-      selectedSound = soundType;
-      clearSelection('sound');
-      switch(soundType){
-        case "ocean":
-          document.getElementById("soundOcean").classList.add('selected');
-          break;
-        case "rain":
-          document.getElementById("soundRain").classList.add('selected');
-          break;
-        case "music":
-          document.getElementById("soundMusic").classList.add('selected');
-          break;
-        case "silence":
-          document.getElementById("soundSilence").classList.add('selected');
-          break;
-      }
+  function startMeditation() {
+    if(meditationStarted) return;
+    meditationStarted = true;
+    
+    preloadAlarm();
+
+    tapCounter = 0;
+    tapTimestamps = [];
+    sessionStartTime = Date.now();
+    timeRemaining = sessionDuration;
+    updateTimerDisplay();
+
+    if(backgroundSound !== "silence"){
+      playBackgroundSound(backgroundSound);
     }
-
-    function startSessionSetup() {
-      if (!selectedDuration) {
-        alert(translations[lang].selectDuration + " " + translations[lang].minutes);
-        return;
-      }
-      sessionDuration = selectedDuration * 60;
-      backgroundSound = selectedSound;
-      goToScreen(3);
-    }
-
-    function startMeditation() {
-      if(meditationStarted) return;
-      meditationStarted = true;
-      
-      tapCounter = 0;
-      tapTimestamps = [];
-      sessionStartTime = Date.now();
-      timeRemaining = sessionDuration;
+    
+    requestWakeLock();
+    
+    timerInterval = setInterval(() => {
+      timeRemaining--;
       updateTimerDisplay();
-
-      if(backgroundSound !== "silence"){
-        playBackgroundSound(backgroundSound);
+      if (timeRemaining <= 0) {
+        endSession();
       }
-      
-      timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-        if (timeRemaining <= 0) {
-          endSession();  // Se llama a endSession() y se reproducirá la alarma
-        }
-      }, 1000);
-    }
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timeRemaining / 60);
-      const seconds = timeRemaining % 60;
-      document.getElementById('timerDisplay').textContent = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }, 1000);
+  }
+  function updateTimerDisplay() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    document.getElementById('timerDisplay').textContent = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    document.getElementById('tapCount').textContent = tapCounter;
+  }
+  function recordTap() {
+    if (timeRemaining > 0) {
+      tapCounter++;
+      tapTimestamps.push(Date.now());
       document.getElementById('tapCount').textContent = tapCounter;
     }
-    function recordTap() {
-      if (timeRemaining > 0) {
-        tapCounter++;
-        tapTimestamps.push(Date.now());
-        document.getElementById('tapCount').textContent = tapCounter;
-      }
+  }
+  function endSessionEarly() {
+    showCustomPopup();
+  }
+  function showCustomPopup() {
+    const popup = document.getElementById('customPopup');
+    const popupMessage = document.getElementById('popupMessage');
+    const popupConfirm = document.getElementById('popupConfirm');
+    const popupCancel = document.getElementById('popupCancel');
+    
+    popupMessage.textContent = translations[lang].exitWarning;
+    popupConfirm.textContent = translations[lang].confirm;
+    popupCancel.textContent = translations[lang].cancel;
+    
+    popup.classList.add('active');
+    
+    popupConfirm.onclick = function() {
+       popup.classList.remove('active');
+       endSession(false);
+    };
+    popupCancel.onclick = function() {
+       popup.classList.remove('active');
+    };
+  }
+  function endSession(playAlarmFlag = true) {
+    clearInterval(timerInterval);
+    stopBackgroundSound();
+    releaseWakeLock();
+    
+    if (playAlarmFlag) {
+      playAlarm();
     }
-    function endSessionEarly() {
-      if (confirm(translations[lang].exitWarning)) {
-        endSession(false);  // No reproducir la alarma cuando se cancela voluntariamente
+      
+    const actualSessionLength = Math.floor((Date.now() - sessionStartTime) / 1000);
+    let avgInterval = 0;
+    if (tapTimestamps.length > 1) {
+      const intervals = [];
+      for (let i = 1; i < tapTimestamps.length; i++) {
+        intervals.push((tapTimestamps[i] - tapTimestamps[i - 1]) / 1000);
       }
+      avgInterval = (intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(0);
+    } else if (tapTimestamps.length === 1) {
+      avgInterval = actualSessionLength;
     }
-    // La función endSession ahora recibe un parámetro (por defecto true) para reproducir la alarma
-    function endSession(playAlarmFlag = true) {
-      clearInterval(timerInterval);
-      stopBackgroundSound();
-      if (playAlarmFlag) {
-        playAlarm();
-      }
-      const actualSessionLength = Math.floor((Date.now() - sessionStartTime) / 1000);
-      let avgInterval = 0;
-      if (tapTimestamps.length > 1) {
-        const intervals = [];
-        for (let i = 1; i < tapTimestamps.length; i++) {
-          intervals.push((tapTimestamps[i] - tapTimestamps[i - 1]) / 1000);
-        }
-        avgInterval = (intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(2);
-      } else if (tapTimestamps.length === 1) {
-        avgInterval = actualSessionLength;
-      }
-      const sessionData = {
-        date: new Date().toLocaleString(),
-        duration: actualSessionLength,
-        distractions: tapCounter,
-        avgInterval: avgInterval
-      };
-      saveSession(sessionData);
-      document.getElementById('sessionLength').textContent = (lang === "en" ? "Session Length: " : "Duración de la Sesión: ") + actualSessionLength + (lang === "en" ? " seconds" : " segundos");
-      document.getElementById('sessionTaps').textContent = tapCounter;
-      document.getElementById('avgInterval').textContent = avgInterval;
-      goToScreen(5);
-    }
+    
+    const sessionData = {
+      date: new Date().toLocaleString(),
+      duration: actualSessionLength,
+      distractions: tapCounter,
+      avgInterval: avgInterval
+    };
+    
+    saveSession(sessionData);
+    updateUserPoints(sessionData);
+    
+    document.getElementById('sessionLength').textContent = (lang === "en" ? "Session Length: " : "Duración de la Sesión: ") + actualSessionLength + (lang === "en" ? " seconds" : " segundos");
+    document.getElementById('sessionTaps').textContent = tapCounter;
+    document.getElementById('avgInterval').textContent = avgInterval;
+    setTimeout(plotSummaryGraph, 100);
+    goToScreen(5);
+  }
 
-    function playBackgroundSound(soundType) {
-      let soundUrl = "";
-      switch(soundType){
-        case "ocean":
-          soundUrl = "sounds/ocean.mp3";
-          break;
-        case "rain":
-          soundUrl = "sounds/rain.mp3";
-          break;
-        case "music":
-          soundUrl = "sounds/music.mp3";
-          break;
-        default:
-          soundUrl = "";
-      }
-      if(soundUrl){
-        audioBackground = new Audio(soundUrl);
-        audioBackground.loop = true;
-        audioBackground.play();
-      }
+  function playBackgroundSound(soundType) {
+    let soundUrl = "";
+    switch(soundType){
+      case "ocean":
+        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/ocean.mp3?v=1738588174113";
+        break;
+      case "rain":
+        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/rain.mp3?v=1738588196191";
+        break;
+      case "music":
+        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/music.mp3?v=1738588191326";
+        break;
+      default:
+        soundUrl = "";
     }
-    function stopBackgroundSound() {
-      if(audioBackground) {
-        audioBackground.pause();
-        audioBackground.currentTime = 0;
-      }
+    if(soundUrl){
+      audioBackground = new Audio(soundUrl);
+      audioBackground.loop = true;
+      audioBackground.play();
     }
+  }
+  function stopBackgroundSound() {
+    if(audioBackground) {
+      audioBackground.pause();
+      audioBackground.currentTime = 0;
+    }
+  }
+  function playAlarm() {
+    if (!audioAlarm) {
+      preloadAlarm();
+    }
+    audioAlarm.currentTime = 0;
+    audioAlarm.play().catch(e => console.error("Error al reproducir la alarma:", e));
+    setTimeout(() => {
+      stopAlarm();
+    }, 3000);
+  }
+  function stopAlarm() {
+    if (audioAlarm) {
+      audioAlarm.pause();
+      audioAlarm.currentTime = 0;
+    }
+  }
+  function saveSession(sessionData) {
+    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
+    history.push(sessionData);
+    localStorage.setItem("meditationHistory", JSON.stringify(history));
+  }
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
+    let content = "";
+    if (history.length === 0) {
+      content = `<p>${translations[lang].historyMsg}</p>`;
+    } else {
+      content = "<table><tr><th>" + (lang === "en" ? "Date" : "Fecha") + "</th><th>" + (lang === "en" ? "Duration (sec)" : "Duración (seg)") + "</th><th>" + (lang === "en" ? "Distractions" : "Distracciones") + "</th><th>" + (lang === "en" ? "Avg Interval (sec)" : "Intervalo Promedio (seg)") + "</th><th>" + (lang === "en" ? "Actions" : "Acciones") + "</th></tr>";
+      history.forEach((session, index) => {
+        content += `<tr>
+                      <td>${session.date}</td>
+                      <td>${session.duration}</td>
+                      <td>${session.distractions}</td>
+                      <td>${session.avgInterval}</td>
+                      <td><button class="red-button" onclick="removeSession(${index})">${lang === "en" ? "Delete" : "Eliminar"}</button></td>
+                    </tr>`;
+      });
+      content += "</table>";
+    }
+    document.getElementById('historyContent').innerHTML = content;
+    plotHistoryGraph(history);
+  }
+  function showResetDataPopup() {
+  const popup = document.getElementById('customPopup');
+  const popupMessage = document.getElementById('popupMessage');
+  const popupConfirm = document.getElementById('popupConfirm');
+  const popupCancel = document.getElementById('popupCancel');
 
-    // La alarma se reproducirá solo durante 3 segundos.
-    function playAlarm() {
-      audioAlarm = new Audio("sounds/alarm.mp3");
-      audioAlarm.play();
-      setTimeout(() => {
-        stopAlarm();
-      }, 3000);
-    }
-    function stopAlarm() {
-      if (audioAlarm) {
-        audioAlarm.pause();
-        audioAlarm.currentTime = 0;
-      }
-    }
+  // Configuramos el mensaje de confirmación y los textos de los botones
+  popupMessage.textContent = translations[lang].resetDataConfirm; 
+  popupConfirm.textContent = translations[lang].confirm;
+  popupCancel.textContent = translations[lang].cancel;
 
-    function saveSession(sessionData) {
-      const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-      history.push(sessionData);
-      localStorage.setItem("meditationHistory", JSON.stringify(history));
-    }
-    function loadHistory() {
-      const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-      let content = "";
-      if (history.length === 0) {
-        content = `<p>${translations[lang].historyMsg}</p>`;
-      } else {
-        content = "<table><tr><th>" + (lang === "en" ? "Date" : "Fecha") + "</th><th>" + (lang === "en" ? "Duration (sec)" : "Duración (seg)") + "</th><th>" + (lang === "en" ? "Distractions" : "Distracciones") + "</th><th>" + (lang === "en" ? "Avg Interval (sec)" : "Intervalo Promedio (seg)") + "</th></tr>";
-        history.forEach(session => {
-          content += `<tr>
-                        <td>${session.date}</td>
-                        <td>${session.duration}</td>
-                        <td>${session.distractions}</td>
-                        <td>${session.avgInterval}</td>
-                      </tr>`;
-        });
-        content += "</table>";
-      }
-      document.getElementById('historyContent').innerHTML = content;
-      plotHistoryGraph(history);
-    }
+  // Mostramos el popup de confirmación
+  popup.classList.add('active');
 
-    let historyChart;
-    function plotHistoryGraph(history) {
-      const labels = history.map((session, index) => `#${index + 1}`);
-      const avgIntervals = history.map(session => parseFloat(session.avgInterval));
-      const ctx = document.getElementById('historyGraph').getContext('2d');
-      if (historyChart) {
-        historyChart.destroy();
-      }
-      historyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: translations[lang].avgInterval,
-            data: avgIntervals,
-            backgroundColor: 'rgba(68, 68, 68, 0.2)',
-            borderColor: 'rgba(68, 68, 68, 1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#222' },
-              grid: { color: 'rgba(34, 34, 34, 0.1)' }
-            },
-            x: {
-              ticks: { color: '#222' },
-              grid: { display: false }
-            }
+  // Al confirmar, se borran los datos y se muestra un mensaje de éxito en el mismo popup
+  popupConfirm.onclick = function() {
+    // Borramos los datos
+    localStorage.removeItem("meditationHistory");
+    localStorage.removeItem("userPoints");
+    // Actualizamos la interfaz
+    loadHistory();
+    updateUserLevelDisplay();
+    updateHomeLevelDisplay();
+
+    // Mostramos el mensaje de éxito
+    popupMessage.textContent = translations[lang].resetDataAlert;
+    // Ocultamos temporalmente los botones para que se vea solo el mensaje
+    popupConfirm.style.display = 'none';
+    popupCancel.style.display = 'none';
+
+    // Después de 1 segundos, cerramos el popup y restauramos los botones
+    setTimeout(() => {
+      popup.classList.remove('active');
+      popupConfirm.style.display = '';
+      popupCancel.style.display = '';
+    }, 1000);
+  };
+
+  // Cancelar cierra el popup sin hacer cambios
+  popupCancel.onclick = function() {
+    popup.classList.remove('active');
+  };
+}
+
+
+  function resetAllData() {
+    if (confirm(translations[lang].resetDataConfirm)) {
+      localStorage.removeItem("meditationHistory");
+      localStorage.removeItem("userPoints");
+      alert(translations[lang].resetDataAlert);
+      loadHistory();
+      updateUserLevelDisplay();
+      updateHomeLevelDisplay();
+    }
+  }
+
+  let historyChart;
+  function plotHistoryGraph(history) {
+    const labels = history.map((session, index) => `#${index + 1}`);
+    const avgIntervals = history.map(session => parseFloat(session.avgInterval));
+    const ctx = document.getElementById('historyGraph').getContext('2d');
+    if (historyChart) {
+      historyChart.destroy();
+    }
+    historyChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: translations[lang].avgInterval,
+          data: avgIntervals,
+       backgroundColor: 'rgba(0, 123, 255, 0.2)',  // Azul claro
+        borderColor: 'rgba(0, 123, 255, 1)',  // Azul oscuro
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#333' },
+            grid: { color: 'rgba(58, 58, 58, 0.1)' }
           },
-          plugins: {
-            legend: {
-              labels: { color: '#222' }
-            }
+          x: {
+            ticks: { color: '#333' },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: '#333' }
           }
         }
-      });
-    }
-
-    // Función para borrar el historial de sesiones
-    function clearHistory() {
-      if (confirm(translations[lang].confirmClearHistory)) {
-        localStorage.removeItem("meditationHistory");
-        loadHistory();
       }
+    });
+  }
+
+  let summaryChart;
+  function plotSummaryGraph() {
+    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
+    const labels = history.map((session, index) => `#${index + 1}`);
+    const avgIntervals = history.map(session => parseFloat(session.avgInterval));
+    const ctx = document.getElementById('summaryGraph').getContext('2d');
+    if (summaryChart) {
+      summaryChart.destroy();
     }
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.target.id === "screen4" && mutation.target.classList.contains("active")) {
-          setTimeout(startMeditation, 500);
+    summaryChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: translations[lang].avgInterval,
+          data: avgIntervals,
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',  // Azul claro
+        borderColor: 'rgba(0, 123, 255, 1)',  // Azul oscuro
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#333' },
+            grid: { color: 'rgba(58, 58, 58, 0.1)' }
+          },
+          x: {
+            ticks: { color: '#333' },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: '#333' }
+          }
         }
-      });
+      }
     });
-    document.querySelectorAll('.screen').forEach(screen => {
-      observer.observe(screen, { attributes: true });
-    });
+  }
 
-    window.onload = () => {
-      updateTranslations();
-      loadRandomQuote();
-      goToScreen(1);
-    };
-  </script>
+  function removeSession(index) {
+    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
+    history.splice(index, 1);
+    localStorage.setItem("meditationHistory", JSON.stringify(history));
+    loadHistory();
+  }
+
+  function getHourStreak(sessions) {
+    const filtered = sessions.filter(s => s.duration >= 3600);
+    if(filtered.length === 0) return 0;
+    let dates = filtered.map(s => new Date(s.date));
+    dates.sort((a, b) => a - b);
+    let streak = 1;
+    let maxStreak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      let diffDays = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
+      if(diffDays >= 0.9 && diffDays <= 1.5) {
+        streak++;
+      } else {
+        streak = 1;
+      }
+      if(streak > maxStreak) maxStreak = streak;
+    }
+    return maxStreak;
+  }
+
+  function updateUserLevelDisplay() {
+    let points = Math.floor(parseFloat(localStorage.getItem("userPoints")) || 0);
+    let level = getUserLevel(points);
+    let label = lang === "en" ? "Current Level:" : "Nivel Actual:";
+    let totalLabel = lang === "en" ? "Meditated minutes:" : "Minutos meditados:";
+    document.getElementById("levelDisplay").innerHTML = label + " " + level + " (" + totalLabel + " " + points + ")";
+  }
+
+  function getMaxStreak(sessions) {
+    if(sessions.length === 0) return 0;
+    let dates = sessions.map(s => new Date(s.date));
+    dates.sort((a,b) => a - b);
+    let streak = 1;
+    let maxStreak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      let diffDays = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
+      if(diffDays >= 0.9 && diffDays <= 1.5) {
+        streak++;
+      } else if(diffDays > 1.5) {
+        streak = 1;
+      }
+      if(streak > maxStreak) maxStreak = streak;
+    }
+    return maxStreak;
+  }
+
+  function updateUserPoints(sessionData) {
+    let points = parseFloat(localStorage.getItem("userPoints")) || 0;
+    let sessionPoints = sessionData.duration / 60;
+    if (sessionData.distractions == 0 && sessionData.duration >= 60) {
+      sessionPoints += 10;
+    }
+    points += sessionPoints;
+    localStorage.setItem("userPoints", points);
+    return points;
+  }
+
+  function getUserLevel(points) {
+    if(points < 100) return "Rookie";
+    else if(points < 400) return "Intermediate";
+    else if(points < 1200) return "Meditation God";
+    else return "Buddha";
+  }
+
+  function renderAchievements() {
+    let history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
+    let totalSessions = history.length;
+    let totalMinutes = history.reduce((sum, session) => sum + session.duration / 60, 0);
+    let maxStreak = getMaxStreak(history);
+    let longMeditationCount = history.filter(s => s.duration >= 45 * 60).length;
+    let focusedSessionCount = history.filter(s => s.distractions <= 1).length;
+    let silentSessionCount = history.filter(s => s.distractions == 0).length;
+    let long30Count = history.filter(s => s.duration >= 30 * 60).length;
+    let hourStreak = getHourStreak(history);
+    
+    let stats = { totalSessions, totalMinutes, maxStreak, longMeditationCount, focusedSessionCount, silentSessionCount, long30Count, hourStreak };
+
+    let badgesHTML = "";
+    badgeDefinitions.forEach(badge => {
+      let achieved = badge.condition(stats);
+      let title = (lang === "es") ? badge.title_es : badge.title_en;
+      let desc = (lang === "es") ? badge.description_es : badge.description_en;
+      badgesHTML += `<div class="badge-card ${achieved ? "achieved" : ""}">
+        <div class="badge-icon">${badge.icon}</div>
+        <div class="badge-title">${title}</div>
+        <div class="badge-desc">${desc}</div>
+      </div>`;
+    });
+    document.getElementById("badgesContainer").innerHTML = badgesHTML;
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.target.id === "screen4" && mutation.target.classList.contains("active")) {
+        setTimeout(startMeditation, 500);
+      }
+    });
+  });
+  document.querySelectorAll('.screen').forEach(screen => {
+    observer.observe(screen, { attributes: true });
+  });
+
+  window.onload = () => {
+    updateTranslations();
+    goToScreen(1);
+  };
+</script>
 </body>
 </html>
