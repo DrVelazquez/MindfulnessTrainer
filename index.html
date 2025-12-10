@@ -2,1384 +2,806 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title data-i18n="title">Meditation Trainer</title>
-  <!-- Google Fonts: Poppins -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <!-- Chart.js CDN for progress graph -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ZenFocus</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a',
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    /* Reset & estilos base */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    body { font-family: 'Poppins', sans-serif; user-select: none; -webkit-user-select: none; }
+    
+    /* Scrollbar invisible */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Animations */
+    @keyframes breathe {
+      0%, 100% { transform: scale(1) translate(-50%, -50%); opacity: 0.8; }
+      50% { transform: scale(1.2) translate(-50%, -50%); opacity: 0.4; }
     }
-    html, body {
-      height: 100%;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
-      color: #333;
-      overflow-x: hidden;
+    .animate-breathe {
+      animation: breathe 8s infinite ease-in-out;
+      transform-origin: center;
     }
 
-    /* -- Banner SOLO en la pantalla 1 -- */
-    .home-banner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255,255,255,0.95);
-      padding: 8px 16px;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .progress-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-    /* Barra de progreso con texto centrado */
-    .progress-container {
-      position: relative;
-      width: 200px;
-      height: 20px;
-      background: #B2DFDB;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      background: #00796B;
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-    /* Texto que siempre se muestra centrado encima de la barra */
-    .progress-text {
-      position: absolute;
-      width: 100%;
-      text-align: center;
-      font-size: 12px;
-      line-height: 20px;
-      color: #fff;
-      pointer-events: none; /* Para que no interfiera en clics */
-    }
-    .level-info {
-      font-size: 12px;
-      color: #00796B;
-      text-align: center;
-    }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-    /* Toggle de idioma estilo iOS */
-    .lang-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
+    @keyframes bounce-slow {
+      0%, 100% { transform: translateY(-5%); }
+      50% { transform: translateY(5%); }
     }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 22px;
-    }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 34px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-    input:checked + .slider {
-      background-color: #00796B;
-    }
-    input:checked + .slider:before {
-      transform: translateX(18px);
-    }
+    .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
 
-    /* Estilos generales de cada pantalla */
-    .screen {
-      display: none;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-      max-width: 600px;
-      margin: 20px auto;
-      background: rgba(224, 247, 250, 0.9);
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      position: relative;
-    }
-    .active {
-      display: block;
-      opacity: 1;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    h1, h2 {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 20px;
-    }
-    p {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #555;
-      margin-bottom: 15px;
-    }
-    /* Botones */
-    .button, .red-button {
-      border: none;
-      border-radius: 30px;
-      margin: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.1s ease;
-      font-size: 16px;
-      padding: 12px 24px;
-    }
-    .button {
-      background: #fff;
-      border: 2px solid #3a3a3a;
-      color: #3a3a3a;
-    }
-    .button:hover {
-      background: #3a3a3a;
-      color: #fff;
-      transform: translateY(-2px);
-    }
-    .button:active {
-      transform: translateY(0);
-    }
-    .button.selected {
-      background: #3a3a3a;
-      color: #fff;
-    }
-    .red-button {
-      background: #ff6b6b;
-      color: #fff;
-      border: none;
-    }
-    .red-button:hover {
-      background: #ff5252;
-      transform: translateY(-2px);
-    }
-    .red-button:active {
-      transform: translateY(0);
-    }
-    /* Bloques de explicación */
-    .explanation {
-      background: rgba(224, 247, 250, 0.8);
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    /* Card slider para la pantalla inicial */
-    .card-slider {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .card-content {
-      flex: 1;
-      padding: 20px;
-      text-align: center;
-      background: rgba(224, 247, 250, 0.9);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      margin: 0 10px;
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .arrow-button {
-      background: rgba(179, 229, 252, 0.8);
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    .arrow-button:hover {
-      background: rgba(179, 229, 252, 1);
-    }
-    /* Área de toque para registrar distracciones */
-    .tap-area {
-      position: absolute;
-      top: 15%;
-      left: 0;
-      width: 100%;
-      height: 75%;
-      z-index: 1;
-      background: transparent;
-      cursor: pointer;
-    }
-    /* Temporizador y contador */
-    .timer-counter {
-      position: absolute;
-      top: 15px;
-      width: 100%;
-      text-align: center;
-      font-size: 20px;
-      z-index: 10;
-      color: #333;
-      background: rgba(255,255,255,0.5);
-      padding: 5px 0;
-    }
-    /* Opciones y grupos */
-    .options {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .option-group {
-      margin: 20px 0;
-      text-align: center;
-    }
-    /* Tabla de historial */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 16px;
-    }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    th, td {
-      padding: 12px;
-      text-align: center;
-    }
-    th {
-      background: #f2f2f2;
-    }
-    #historyContent {
-      overflow-x: auto;
-      max-width: 100%;
-    }
-    #historyContent::-webkit-scrollbar {
-      height: 8px;
-    }
-    #historyContent::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    #historyContent::-webkit-scrollbar-thumb {
-      background-color: rgba(0,0,0,0.3);
-      border-radius: 4px;
-    }
-    #historyContent table {
-      width: 100%;
-      max-width: 100%;
-      display: block;
-    }
-    /* Gráficos */
-    #historyGraph, #summaryGraph {
-      max-width: 100%;
-      margin: 20px auto;
-    }
-    .top-nav {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .reset-data {
-      font-size: 12px;
-      color: #800000;
-      cursor: pointer;
-      text-align: center;
-      margin-top: 10px;
-    }
-    /* Media Queries */
-    @media (max-width: 600px) {
-      .screen {
-        margin: 20px;
-        padding: 20px;
-      }
-      .button, .red-button {
-        width: 90%;
-        margin: 10px auto;
-      }
-      .red-button {
-        padding: 10px 20px;
-      }
-      .arrow-button {
-        font-size: 20px;
-        padding: 8px;
-      }
-    }
-    /* Pantalla 4: Meditación a pantalla completa */
-    #screen4.full-screen {
-      max-width: 100%;
-      margin: 0;
-      border-radius: 0;
-      padding: 0;
-      box-shadow: none;
-      height: 100vh;
-      width: 100vw;
-      background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
-      position: relative;
-    }
-    #screen4.full-screen .tap-area {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      background: transparent;
-      cursor: pointer;
-    }
-    #screen4.full-screen .red-button {
-      position: relative;
-      z-index: 3;
-      margin: 20px;
-      margin-top: 70px;
-    }
-    /* Slider de duración */
-    input[type=range] {
-      -webkit-appearance: none;
-      width: 95%;
-      margin: 15px 0;
-      height: 8px;
-      background: #ddd;
-      border-radius: 5px;
-      outline: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #3a3a3a;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      transition: background 0.3s ease;
-    }
-    input[type=range]::-webkit-slider-thumb:hover {
-      background: #555;
-    }
-    input[type=range]::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
-      border: none;
-      border-radius: 50%;
-      background: #3a3a3a;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    /* Achievements */
-    .badge-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
-    .badge-card {
-      background: #fff;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-    .badge-card.achieved {
-      border-color: #3a3a3a;
-      background: #e0ffe0;
-    }
-    .badge-card:hover {
-      transform: translateY(-5px);
-    }
-    .badge-icon {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
-    .badge-title {
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    .badge-desc {
-      font-size: 14px;
-      color: #555;
-    }
-    .level-display {
-      text-align: center;
-      font-size: 18px;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-    /* Custom Popup Estilo */
-    .custom-popup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    .custom-popup.active {
-      display: flex;
-    }
-    .custom-popup-content {
-      background: rgba(224, 247, 250, 0.9);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      max-width: 300px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
+    .no-tap-highlight { -webkit-tap-highlight-color: transparent; }
   </style>
-</head>
-<body>
-
-<!-- Pantalla 1: Bienvenida e Introducción -->
-<div class="screen active" id="screen1">
-
-  <!-- Banner SOLO en la pantalla 1 -->
-  <div class="home-banner">
-    <div class="progress-section">
-      <!-- Contenedor de la barra -->
-      <div class="progress-container">
-        <div class="progress-fill" id="progressFill"></div>
-        <div class="progress-text" id="progressText">minutos meditados: 0/100</div>
-      </div>
-      <!-- Texto del nivel -->
-      <div class="level-info" id="levelInfo">Nivel: Novato</div>
-    </div>
-    <!-- Toggle de idioma en la esquina -->
-    <div class="lang-toggle">
-      <span>EN</span>
-      <label class="switch">
-        <input type="checkbox" id="langToggle" onchange="toggleLanguage(this.checked)">
-        <span class="slider"></span>
-      </label>
-      <span>ES</span>
-    </div>
-  </div>
-
-  <header>
-    <h1 data-i18n="title">Meditation Trainer</h1>
-  </header>
-
-  <!-- Card slider con flechitas -->
-  <div class="card-slider">
-    <button class="arrow-button" onclick="prevCard()">&#10094;</button>
-    <div id="cardContent" class="card-content"></div>
-    <button class="arrow-button" onclick="nextCard()">&#10095;</button>
-  </div>
-
-  <div class="options">
-    <button class="button" onclick="goToScreen(2)" data-i18n="newSession">Nueva Sesión</button>
-    <button class="button" onclick="goToScreen(6)" data-i18n="history">Historial</button>
-    <button class="button" onclick="goToScreen(7)" data-i18n="achievements">Insignias</button>
-  </div>
-</div>
-
-<!-- Pantalla 2: Configuración de la Sesión -->
-<div class="screen" id="screen2">
-  <header>
-    <h2 data-i18n="newSessionHeader">Nueva Sesión de Meditación</h2>
-  </header>
-  <div class="explanation">
-    <p data-i18n="sessionSetupMsg">
-      Elige la duración y el sonido de fondo. Luego toca en cualquier parte durante la meditación para contar distracciones.
-    </p>
-  </div>
-  <div class="options">
-    <div class="option-group">
-      <p><strong data-i18n="selectDuration">Selecciona Duración:</strong></p>
-      <input type="range" id="durationSlider" min="5" max="60" step="5" value="5" oninput="updateDurationDisplay(this.value)">
-      <div id="durationDisplay">5 <span data-i18n="minutes">minutos</span></div>
-    </div>
-    <div class="option-group">
-      <p><strong data-i18n="selectSound">Selecciona Sonido:</strong></p>
-      <button class="button" onclick="selectSound('ocean')" data-group="sound" id="soundOcean"><span data-i18n="ocean">Océano</span></button>
-      <button class="button" onclick="selectSound('rain')" data-group="sound" id="soundRain"><span data-i18n="rain">Lluvia</span></button>
-      <button class="button" onclick="selectSound('music')" data-group="sound" id="soundMusic"><span data-i18n="music">Música Relajante</span></button>
-      <button class="button" onclick="selectSound('silence')" data-group="sound" id="soundSilence"><span data-i18n="silence">Silencio</span></button>
-    </div>
-    <button class="button" onclick="startSessionSetup()" data-i18n="continue">Continuar</button>
-    <!-- Nuevo botón para volver al inicio -->
-    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
-  </div>
-</div>
-
-
-<!-- Pantalla 4: Meditación a pantalla completa -->
-<div class="screen full-screen" id="screen4">
-  <div class="timer-counter">
-    <span id="timerDisplay">00:00</span> | <span data-i18n="distractions">Distracciones</span>: <span id="tapCount">0</span>
-  </div>
-  <button class="red-button" onclick="endSessionEarly()" data-i18n="stopSession">Detener Sesión</button>
-  <div class="tap-area" onclick="recordTap()"></div>
-</div>
-
-<!-- Pantalla 5: Resumen de la Sesión y gráfico -->
-<div class="screen" id="screen5">
-  <header>
-    <h2 data-i18n="summaryHeader">Resumen de la Sesión</h2>
-  </header>
-  <div class="explanation">
-    <p data-i18n="summaryMsg">
-      Revisa los resultados de tu sesión. Con la práctica notarás menos distracciones y mayor enfoque.
-    </p>
-  </div>
-  <div class="options" style="text-align:center;">
-    <p id="sessionLength"></p>
-    <p><span data-i18n="distractions">Distracciones</span>: <span id="sessionTaps"></span></p>
-    <p><span data-i18n="avgInterval">Tiempo Promedio Entre Distracciones</span>: <span id="avgInterval"></span> segundos</p>
-    <p><strong data-i18n="encouragement">
-      ¡Sigue practicando, pronto verás mejoras!
-    </strong></p>
-    <canvas id="summaryGraph" width="400" height="200"></canvas>
-    <p id="graphExplanation" data-i18n="graphExplanation"></p>
-    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
-    <button class="button" onclick="goToScreen(6)" data-i18n="viewHistory">Ver Historial</button>
-    <!-- Nuevo botón para ir a la página de insignias -->
-    <button class="button" onclick="goToScreen(7)" data-i18n="viewBadges">Ver Insignias</button>
-  </div>
-</div>
-
-<!-- Pantalla 6: Historial y gráfico -->
-<div class="screen" id="screen6">
-  <header>
-    <h2 data-i18n="historyHeader">Historial</h2>
-  </header>
-  <div class="top-nav">
-    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
-  </div>
-  <div class="explanation">
-    <p data-i18n="historyMsg">Revisa tus sesiones pasadas y sigue tu progreso.</p>
-  </div>
-  <div class="options">
-    <canvas id="historyGraph" width="400" height="200"></canvas>
-    <div id="historyContent"></div>
-   <div class="reset-data" onclick="showResetDataPopup()">
-  <span data-i18n="resetData">Borrar Datos</span>
-    </div>
-  </div>
-</div>
-
-<!-- Pantalla 7: Insignias -->
-<div class="screen" id="screen7">
-  <header>
-    <h2 data-i18n="achievements">Insignias</h2>
-  </header>
-  <div class="level-display" id="levelDisplay"></div>
-  <div class="explanation">
-    <p data-i18n="achievementsDesc">
-      Desbloquea insignias conforme avanzas. ¡Sigue meditando para ganar puntos y subir de nivel!
-    </p>
-  </div>
-  <div class="badge-grid" id="badgesContainer"></div>
-  <div class="options" style="text-align:center;">
-    <button class="button" onclick="goHome()" data-i18n="backHome">Volver al Inicio</button>
-  </div>
-</div>
-
-<!-- Custom Popup Modal -->
-<div id="customPopup" class="custom-popup">
-  <div class="custom-popup-content">
-    <p id="popupMessage"></p>
-    <div style="margin-top: 20px;">
-      <button class="button" id="popupConfirm"></button>
-      <button class="red-button" id="popupCancel"></button>
-    </div>
-  </div>
-</div>
-
-<script>
-  /*********** Traducciones ***********/
-  const translations = {
-    en: {
-      title: "Meditation Trainer",
-      welcomeSlide1: "Welcome to Meditation Trainer. Track your meditation to boost focus.",
-      welcomeSlide2: "Meditation reduces stress and improves your well-being.",
-      welcomeSlide3: "Studies show meditation can reshape your brain for the better.",
-      welcomeSlide4: "Meditate daily – 5 minutes a day beats 1 hour a week. Notice changes in days!",
-      newSession: "▶️ New Session",
-      newSessionHeader: "New Meditation Session",
-      history: "📅 History",
-      achievements: "🥇 Achievements",
-      sessionSetupMsg: "Choose a session duration and a background sound. Then tap anywhere during meditation to count distractions.",
-      selectDuration: "Select Duration:",
-      minutes: "minutes",
-      selectSound: "Select Sound:",
-      ocean: "Ocean",
-      rain: "Rain",
-      music: "Relaxing Music",
-      silence: "Silence",
-      continue: "Continue",
-      distractions: "Distractions",
-      stopSession: "Stop Session",
-      exitWarning: "Are you sure you want to end the session early?",
-      summaryHeader: "Session Summary",
-      summaryMsg: "Review your session results. With practice, you'll notice fewer distractions and improved focus.",
-      avgInterval: "Average Time Between Distractions",
-      encouragement: "Keep practicing—you’ll soon see improvement!",
-      backHome: "Back to Home",
-      viewHistory: "📅 View History",
-      viewBadges: "🥇 View Badges",
-      resetData: "Reset Data",
-      resetDataConfirm: "Are you sure you want to reset all data?",
-      resetDataAlert: "All data has been reset.",
-      graphExplanation: "The higher the graph, the better",
-      historyHeader: "History",
-      historyMsg: "Review your past sessions and track your progress.",
-      achievementsDesc: "Unlock badges as you progress. Keep meditating to earn points and level up!",
-      confirm: "Yes",
-      cancel: "No"
-    },
-    es: {
-      title: "Entrenador de Meditación",
-     welcomeSlide1: "Bienvenido a Entrenador de Meditación. Una herramienta diseñada para ayudarte a entrenar tu mente y desarrollar el hábito de meditar de forma efectiva.",
-welcomeSlide2: "La meditación no es ‘poner la mente en blanco’. Es entrenar tu atención. Puedes enfocarte en tu respiración, tu cuerpo o lo que te rodea.",
-welcomeSlide3: "Tu mente se va a distraer. Es normal. Pero cada vez que notes que se desvió y la traigas de vuelta, estarás progresando. Así es como entrenas.",
-welcomeSlide4: "Está científicamente comprobado: la meditación cambia físicamente tu cerebro. Aumenta la materia gris en áreas clave como la memoria, la concentración y la gestión del estrés.",
-welcomeSlide5: "Nuestra app no solo mide el tiempo que meditas, sino cómo evoluciona tu concentración. Lleva un registro de tus distracciones y te muestra cómo cada sesión mejoras.",
-welcomeSlide6: "La clave está en la constancia: 10 minutos al día son más efectivos que una hora a la semana. Un poco cada día transforma tu mente y tu vida.",
-welcomeSlide7: "Con el tiempo, verás cómo tu mente se distrae menos y tu enfoque se fortalece. Meditar deja de ser un desafío y se convierte en un superpoder.",
-welcomeSlide8: "Empieza hoy. Entrena tu atención, reduce el estrés y transforma tu bienestar con solo unos minutos al día.",
-      newSession: "▶️ Nueva Sesión",
-      newSessionHeader: "Nueva Sesión de Meditación",
-      history: "📅 Historial",
-      achievements: "🥇 Insignias",
-      sessionSetupMsg: "Elige la duración y el sonido de fondo. Luego toca en cualquier parte durante la meditación para contar distracciones.",
-      selectDuration: "Selecciona Duración:",
-      minutes: "minutos",
-      selectSound: "Selecciona Sonido:",
-      ocean: "Océano",
-      rain: "Lluvia",
-      music: "Música Relajante",
-      silence: "Silencio",
-      continue: "Continuar",
-      distractions: "Distracciones",
-      stopSession: "Detener Sesión",
-      exitWarning: "¿Estás seguro de que deseas finalizar la sesión anticipadamente?",
-      summaryHeader: "Resumen de la Sesión",
-      summaryMsg: "Revisa los resultados de tu sesión. Con la práctica notarás menos distracciones y mayor enfoque.",
-      avgInterval: "Tiempo Promedio Entre Distracciones",
-      encouragement: "¡Sigue practicando, pronto verás mejoras!",
-      backHome: "Volver al Inicio",
-      viewHistory: "📅 Ver Historial",
-      viewBadges: "🥇 Ver Insignias",
-      resetData: "Borrar Datos",
-      resetDataConfirm: "¿Estás seguro de que deseas borrar todos los datos?",
-      resetDataAlert: "Todos los datos han sido borrados.",
-      graphExplanation: "Mientras más alto el gráfico, mejor",
-      historyHeader: "Historial",
-      historyMsg: "Revisa tus sesiones pasadas y sigue tu progreso.",
-      achievementsDesc: "Desbloquea insignias conforme avanzas. ¡Sigue meditando para ganar puntos y subir de nivel!",
-      confirm: "Sí",
-      cancel: "No"
-    }
-  };
-
-  // Textos para el card slider
-  const meditationQuotes = {
-  en: [
-  "Welcome to Meditation Trainer!\n\n💡 A powerful tool to train your mind and build the habit of meditation.",
-  "Meditation is NOT about blanking your mind!\n\n👉 It’s about honing your attention. Focus on your breath, your body, or your surroundings.",
-  "Your mind will wander...\n\n😌 And that’s completely normal!\nEach time you notice it drifting and bring it back,\nyou’re strengthening your focus.",
-  "Track Your Progress:\n\n📈 The goal of our app is to monitor your distractions and show your progress, session by session.",
-  "Science Proves It:\n\n🔬 Meditation transforms your brain by boosting gray matter\nin key areas like memory, focus, and stress management.",
-  "Consistency is Key!\n\n⏱️ Just 10 minutes a day is more effective than one hour a week.\nSmall daily steps make a huge difference.",
-  "Watch Your Focus Grow:\n\n🔥 Over time, you’ll notice fewer distractions and a stronger focus.\nMeditation turns into a superpower that transforms your life.",
-  "Start Today!\n\n🚀 Train your attention, reduce stress, and boost your well-being\nwith just a few minutes a day."
-],
-es: [
-  "¡Bienvenido a Entrenador de Meditación!\n\n💡 Una herramienta poderosa para entrenar tu mente y formar el hábito de meditar.",
-  "¡La meditación NO es poner la mente en blanco!\n\n👉 Se trata de afinar tu atención. Enfócate en tu respiración, tu cuerpo o en lo que te rodea.",
-  "Tu mente se distraerá...\n\n😌 ¡Y eso es totalmente normal!\nCada vez que notes la distracción y la recobres,\nestarás fortaleciendo tu concentración.",
-  "Lleva un Registro de Tu Progreso:\n\n📈 El objetivo de nuestra app es ese: registrar tus distracciones y mostrarte tu progreso en cada sesión.",
-  "Comprobado Científicamente:\n\n🔬 La meditación transforma tu cerebro al aumentar la materia gris\nen áreas clave como la memoria, el enfoque y la gestión del estrés.",
-  "¡La Constancia es la Clave!\n\n⏱️ Solo 10 minutos al día son más efectivos que una hora a la semana.\nPequeños pasos diarios hacen una gran diferencia.",
-  "Observa Cómo Crece Tu Enfoque:\n\n🔥 Con el tiempo, verás menos distracciones y un enfoque más fuerte.\nLa meditación se convierte en un superpoder que transforma tu vida.",
-  "¡Empieza Hoy!\n\n🚀 Entrena tu atención, reduce el estrés y eleva tu bienestar\ncon solo unos minutos al día."
-]
-
-  };
-  
-  
-
-  // Definición de insignias (badges)
-  const badgeDefinitions = [
-    { id: 1, title_en: "First Meditation", title_es: "Primera Meditación", icon: "🌱", description_en: "Complete your first meditation session.", description_es: "Completa tu primera sesión de meditación.", condition: (stats) => stats.totalSessions >= 1 },
-    { id: 2, title_en: "3-Day Streak", title_es: "Racha de 3 Días", icon: "📅", description_en: "Meditate for 3 consecutive days.", description_es: "Medita 3 días consecutivos.", condition: (stats) => stats.maxStreak >= 3 },
-    { id: 3, title_en: "7-Day Streak", title_es: "Racha de 7 Días", icon: "7️⃣", description_en: "Meditate for 7 consecutive days.", description_es: "Medita 7 días consecutivos.", condition: (stats) => stats.maxStreak >= 7 },
-    { id: 4, title_en: "15-Day Streak", title_es: "Racha de 15 Días", icon: "1️⃣5️⃣", description_en: "Meditate for 15 consecutive days.", description_es: "Medita 15 días consecutivos.", condition: (stats) => stats.maxStreak >= 15 },
-    { id: 5, title_en: "30-Day Streak", title_es: "Racha de 30 Días", icon: "3️⃣0️⃣", description_en: "Meditate for 30 consecutive days.", description_es: "Medita 30 días consecutivos.", condition: (stats) => stats.maxStreak >= 30 },
-    { id: 6, title_en: "Long Meditation", title_es: "Meditación Larga", icon: "⏱️", description_en: "Complete a session lasting 45 minutes or more.", description_es: "Completa una sesión de 45 minutos o más.", condition: (stats) => stats.longMeditationCount >= 1 },
-    { id: 7, title_en: "Focused Mind", title_es: "Mente Enfocada", icon: "🎯", description_en: "Achieve a session with 1 or fewer distractions.", description_es: "Logra una sesión con 1 o menos distracciones.", condition: (stats) => stats.focusedSessionCount >= 1 },
-    { id: 8, title_en: "Silent Mind", title_es: "Mente Silenciosa", icon: "🤫", description_en: "Complete a session with zero distractions.", description_es: "Completa una sesión sin distracciones.", condition: (stats) => stats.silentSessionCount >= 1 },
-    { id: 9, title_en: "Five Long Meditations", title_es: "Cinco Meditaciones Largas", icon: "5️⃣", description_en: "Complete 5 sessions of at least 30 minutes.", description_es: "Completa 5 sesiones de al menos 30 minutos.", condition: (stats) => stats.long30Count >= 5 },
-    { id: 10, title_en: "Consistency", title_es: "Constancia", icon: "🏆", description_en: "Complete 10 meditation sessions.", description_es: "Completa 10 sesiones de meditación.", condition: (stats) => stats.totalSessions >= 10 },
-    { id: 11, title_en: "Meditation Master", title_es: "Maestro de la Meditación", icon: "🥇", description_en: "Complete 50 meditation sessions.", description_es: "Completa 50 sesiones de meditación.", condition: (stats) => stats.totalSessions >= 50 },
-    { id: 12, title_en: "Meditation Marathon", title_es: "Maratón de Meditación", icon: "⏳", description_en: "Accumulate 300 minutes of meditation.", description_es: "Acumula 300 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 300 },
-    { id: 13, title_en: "Meditation God", title_es: "Dios de la Meditación", icon: "🙏", description_en: "Accumulate 600 minutes of meditation.", description_es: "Acumula 600 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 600 },
-    { id: 14, title_en: "Buddha", title_es: "Buddha", icon: "🧘", description_en: "Accumulate 900 minutes of meditation.", description_es: "Acumula 900 minutos de meditación.", condition: (stats) => stats.totalMinutes >= 900 },
-    { id: 15, title_en: "Committed", title_es: "Comprometido", icon: "💪", description_en: "Meditate at least one hour a day for 7 consecutive days.", description_es: "Medita al menos una hora diaria durante 7 días consecutivos.", condition: (stats) => stats.hourStreak >= 7 }
-  ];
-
-  // Declaración global para Wake Lock
-  let wakeLock = null;
-
-  // Variables para el card slider
-  let cardTexts = [];
-  let currentCardIndex = 0;
-  function updateCardContent() {
-    document.getElementById("cardContent").innerText = cardTexts[currentCardIndex];
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
   }
-  function nextCard() {
-    currentCardIndex = (currentCardIndex + 1) % cardTexts.length;
-    updateCardContent();
-  }
-  function prevCard() {
-    currentCardIndex = (currentCardIndex - 1 + cardTexts.length) % cardTexts.length;
-    updateCardContent();
-  }
-
-  const browserLang = navigator.language.slice(0,2);
-  let lang = translations[browserLang] ? browserLang : "en";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    // Inicializa el toggle según el idioma
-    document.getElementById("langToggle").checked = (lang === "es");
-    
-    updateDurationDisplay(document.getElementById("durationSlider").value);
-    
-    // Inicializa los textos del card slider
-    cardTexts = meditationQuotes[lang];
-    
-    updateCardContent();
-    goToScreen(1);
-  });
-
-  // Actualiza la barra de progreso y el nivel
-  function updateHomeLevelDisplay() {
-    let points = Math.floor(parseFloat(localStorage.getItem("userPoints")) || 0);
-    // Definición de niveles y umbrales
-    const levels = [
-      { key: "Rookie", en: "Rookie", es: "Novato", min: 0, max: 100 },
-      { key: "Intermediate", en: "Intermediate", es: "Intermedio", min: 100, max: 400 },
-      { key: "Meditation God", en: "Meditation God", es: "Dios de la Meditación", min: 400, max: 1200 },
-      { key: "Buddha", en: "Buddha", es: "Buddha", min: 1200, max: Infinity }
-    ];
-    let currentLevel = levels.find(l => points < l.max) || levels[levels.length-1];
-    const progressFill = document.getElementById("progressFill");
-    const progressText = document.getElementById("progressText");
-    const levelInfo = document.getElementById("levelInfo");
-
-    // Calcula el porcentaje para la barra
-    let percent = Math.min(100, ((points - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100);
-    progressFill.style.width = percent + "%";
-
-    // Texto: "minutos meditados: X/Y"
-    progressText.textContent = (lang === "es" ? "minutos meditados: " : "meditated minutes: ")
-                              + points + "/" + (currentLevel.max === Infinity ? "∞" : currentLevel.max);
-
-    // Nivel: "Nivel: Novato" o "Nivel: Rookie"
-    levelInfo.textContent = (lang === "es" ? "Nivel: " : "Level: ")
-                            + (lang === "es" ? currentLevel.es : currentLevel.en);
-  }
-
-  function updateTranslations() {
-    document.querySelectorAll("[data-i18n]").forEach(elem => {
-      const key = elem.getAttribute("data-i18n");
-      if (translations[lang][key]) {
-        elem.textContent = translations[lang][key];
-      }
-    });
-    document.title = translations[lang].title;
-    if(document.getElementById("durationSlider")){
-      document.getElementById("durationDisplay").innerHTML = document.getElementById("durationSlider").value + " " + translations[lang].minutes;
-    }
-    cardTexts = meditationQuotes[lang];
-    updateCardContent();
-  }
-
-  function setLanguage(selectedLang) {
-    if (translations[selectedLang]) {
-      lang = selectedLang;
-      updateTranslations();
-      if(document.getElementById('historyContent').innerHTML !== ""){
-        loadHistory();
-      }
-      updateHomeLevelDisplay();
-    }
-  }
-  
-  // Función para el toggle de idioma: false = en, true = es
-  function toggleLanguage(isEs) {
-    setLanguage(isEs ? "es" : "en");
-  }
-
-  function updateDurationDisplay(val) {
-    selectedDuration = parseInt(val);
-    document.getElementById("durationDisplay").innerHTML = val + " " + translations[lang].minutes;
-  }
-
-  function goToScreen(screenNumber) {
-    document.querySelectorAll('.screen').forEach(screen => {
-      screen.classList.remove('active');
-    });
-    if(screenNumber === 1){
-      meditationStarted = false;
-      updateHomeLevelDisplay();
-    }
-    const selectedScreen = document.getElementById(`screen${screenNumber}`);
-    selectedScreen.classList.add('active');
-    if (screenNumber === 6) {
-      loadHistory();
-    }
-    if (screenNumber === 7) {
-      updateUserLevelDisplay();
-      renderAchievements();
-    }
-  }
-
-  function goHome() {
-    try { if (timerInterval) clearInterval(timerInterval); } catch(e) { console.error(e); }
-    try { stopAlarm(); } catch(e) { console.error(e); }
-    try { stopBackgroundSound(); } catch(e) { console.error(e); }
-    try { releaseWakeLock(); } catch(e) { console.error(e); }
-    goToScreen(1);
-  }
-
-  function clearSelection(group) {
-    document.querySelectorAll(`.option-group button[data-group="${group}"]`).forEach(btn => {
-      btn.classList.remove('selected');
-    });
-  }
-
-  function selectSound(soundType) {
-    selectedSound = soundType;
-    clearSelection('sound');
-    switch(soundType){
-      case "ocean":
-        document.getElementById("soundOcean").classList.add('selected');
-        break;
-      case "rain":
-        document.getElementById("soundRain").classList.add('selected');
-        break;
-      case "music":
-        document.getElementById("soundMusic").classList.add('selected');
-        break;
-      case "silence":
-        document.getElementById("soundSilence").classList.add('selected');
-        break;
-    }
-  }
-
-  let sessionDuration = 0;
-  let timerInterval;
-  let timeRemaining = 0;
-  let tapCounter = 0;
-  let tapTimestamps = [];
-  let sessionStartTime;
-  let audioAlarm;
-  let audioBackground;
-  let meditationStarted = false;
-  let backgroundSound = "silence";
-
-  let selectedDuration = 5;
-  let selectedSound = "silence";
-
-  function startSessionSetup() {
-    if (!selectedDuration) {
-      alert(translations[lang].selectDuration + " " + translations[lang].minutes);
-      return;
-    }
-    sessionDuration = selectedDuration * 60;
-    backgroundSound = selectedSound;
-    goToScreen(4);
-  }
-
-  async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log("Wake Lock activado");
-      } catch (err) {
-        console.error(`Error al solicitar Wake Lock: ${err.name}, ${err.message}`);
-      }
-    }
-  }
-  function releaseWakeLock() {
-    if (wakeLock !== null) {
-      wakeLock.release().then(() => {
-        wakeLock = null;
-        console.log("Wake Lock liberado");
-      });
-    }
-  }
-
-  function preloadAlarm() {
-    if (!audioAlarm) {
-      audioAlarm = new Audio("https://cdn.glitch.global/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/alarm.mp3?v=1738962246785");
-      audioAlarm.preload = "auto";
-      audioAlarm.load();
-    }
-  }
-
-  function startMeditation() {
-    if(meditationStarted) return;
-    meditationStarted = true;
-    
-    preloadAlarm();
-
-    tapCounter = 0;
-    tapTimestamps = [];
-    sessionStartTime = Date.now();
-    timeRemaining = sessionDuration;
-    updateTimerDisplay();
-
-    if(backgroundSound !== "silence"){
-      playBackgroundSound(backgroundSound);
-    }
-    
-    requestWakeLock();
-    
-    timerInterval = setInterval(() => {
-      timeRemaining--;
-      updateTimerDisplay();
-      if (timeRemaining <= 0) {
-        endSession();
-      }
-    }, 1000);
-  }
-  function updateTimerDisplay() {
-    const minutes = Math.floor(timeRemaining / 60);
-    const seconds = timeRemaining % 60;
-    document.getElementById('timerDisplay').textContent = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-    document.getElementById('tapCount').textContent = tapCounter;
-  }
-  function recordTap() {
-    if (timeRemaining > 0) {
-      tapCounter++;
-      tapTimestamps.push(Date.now());
-      document.getElementById('tapCount').textContent = tapCounter;
-    }
-  }
-  function endSessionEarly() {
-    showCustomPopup();
-  }
-  function showCustomPopup() {
-    const popup = document.getElementById('customPopup');
-    const popupMessage = document.getElementById('popupMessage');
-    const popupConfirm = document.getElementById('popupConfirm');
-    const popupCancel = document.getElementById('popupCancel');
-    
-    popupMessage.textContent = translations[lang].exitWarning;
-    popupConfirm.textContent = translations[lang].confirm;
-    popupCancel.textContent = translations[lang].cancel;
-    
-    popup.classList.add('active');
-    
-    popupConfirm.onclick = function() {
-       popup.classList.remove('active');
-       endSession(false);
-    };
-    popupCancel.onclick = function() {
-       popup.classList.remove('active');
-    };
-  }
-  function endSession(playAlarmFlag = true) {
-    clearInterval(timerInterval);
-    stopBackgroundSound();
-    releaseWakeLock();
-    
-    if (playAlarmFlag) {
-      playAlarm();
-    }
-      
-    const actualSessionLength = Math.floor((Date.now() - sessionStartTime) / 1000);
-    let avgInterval = 0;
-    if (tapTimestamps.length > 1) {
-      const intervals = [];
-      for (let i = 1; i < tapTimestamps.length; i++) {
-        intervals.push((tapTimestamps[i] - tapTimestamps[i - 1]) / 1000);
-      }
-      avgInterval = (intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(0);
-    } else if (tapTimestamps.length === 1) {
-      avgInterval = actualSessionLength;
-    }
-    
-    const sessionData = {
-      date: new Date().toLocaleString(),
-      duration: actualSessionLength,
-      distractions: tapCounter,
-      avgInterval: avgInterval
-    };
-    
-    saveSession(sessionData);
-    updateUserPoints(sessionData);
-    
-    document.getElementById('sessionLength').textContent = (lang === "en" ? "Session Length: " : "Duración de la Sesión: ") + actualSessionLength + (lang === "en" ? " seconds" : " segundos");
-    document.getElementById('sessionTaps').textContent = tapCounter;
-    document.getElementById('avgInterval').textContent = avgInterval;
-    setTimeout(plotSummaryGraph, 100);
-    goToScreen(5);
-  }
-
-  function playBackgroundSound(soundType) {
-    let soundUrl = "";
-    switch(soundType){
-      case "ocean":
-        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/ocean.mp3?v=1738588174113";
-        break;
-      case "rain":
-        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/rain.mp3?v=1738588196191";
-        break;
-      case "music":
-        soundUrl = "https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/music.mp3?v=1738588191326";
-        break;
-      default:
-        soundUrl = "";
-    }
-    if(soundUrl){
-      audioBackground = new Audio(soundUrl);
-      audioBackground.loop = true;
-      audioBackground.play();
-    }
-  }
-  function stopBackgroundSound() {
-    if(audioBackground) {
-      audioBackground.pause();
-      audioBackground.currentTime = 0;
-    }
-  }
-  function playAlarm() {
-    if (!audioAlarm) {
-      preloadAlarm();
-    }
-    audioAlarm.currentTime = 0;
-    audioAlarm.play().catch(e => console.error("Error al reproducir la alarma:", e));
-    setTimeout(() => {
-      stopAlarm();
-    }, 3000);
-  }
-  function stopAlarm() {
-    if (audioAlarm) {
-      audioAlarm.pause();
-      audioAlarm.currentTime = 0;
-    }
-  }
-  function saveSession(sessionData) {
-    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-    history.push(sessionData);
-    localStorage.setItem("meditationHistory", JSON.stringify(history));
-  }
-  function loadHistory() {
-    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-    let content = "";
-    if (history.length === 0) {
-      content = `<p>${translations[lang].historyMsg}</p>`;
-    } else {
-      content = "<table><tr><th>" + (lang === "en" ? "Date" : "Fecha") + "</th><th>" + (lang === "en" ? "Duration (sec)" : "Duración (seg)") + "</th><th>" + (lang === "en" ? "Distractions" : "Distracciones") + "</th><th>" + (lang === "en" ? "Avg Interval (sec)" : "Intervalo Promedio (seg)") + "</th><th>" + (lang === "en" ? "Actions" : "Acciones") + "</th></tr>";
-      history.forEach((session, index) => {
-        content += `<tr>
-                      <td>${session.date}</td>
-                      <td>${session.duration}</td>
-                      <td>${session.distractions}</td>
-                      <td>${session.avgInterval}</td>
-                      <td><button class="red-button" onclick="removeSession(${index})">${lang === "en" ? "Delete" : "Eliminar"}</button></td>
-                    </tr>`;
-      });
-      content += "</table>";
-    }
-    document.getElementById('historyContent').innerHTML = content;
-    plotHistoryGraph(history);
-  }
-  function showResetDataPopup() {
-  const popup = document.getElementById('customPopup');
-  const popupMessage = document.getElementById('popupMessage');
-  const popupConfirm = document.getElementById('popupConfirm');
-  const popupCancel = document.getElementById('popupCancel');
-
-  // Configuramos el mensaje de confirmación y los textos de los botones
-  popupMessage.textContent = translations[lang].resetDataConfirm; 
-  popupConfirm.textContent = translations[lang].confirm;
-  popupCancel.textContent = translations[lang].cancel;
-
-  // Mostramos el popup de confirmación
-  popup.classList.add('active');
-
-  // Al confirmar, se borran los datos y se muestra un mensaje de éxito en el mismo popup
-  popupConfirm.onclick = function() {
-    // Borramos los datos
-    localStorage.removeItem("meditationHistory");
-    localStorage.removeItem("userPoints");
-    // Actualizamos la interfaz
-    loadHistory();
-    updateUserLevelDisplay();
-    updateHomeLevelDisplay();
-
-    // Mostramos el mensaje de éxito
-    popupMessage.textContent = translations[lang].resetDataAlert;
-    // Ocultamos temporalmente los botones para que se vea solo el mensaje
-    popupConfirm.style.display = 'none';
-    popupCancel.style.display = 'none';
-
-    // Después de 1 segundos, cerramos el popup y restauramos los botones
-    setTimeout(() => {
-      popup.classList.remove('active');
-      popupConfirm.style.display = '';
-      popupCancel.style.display = '';
-    }, 1000);
-  };
-
-  // Cancelar cierra el popup sin hacer cambios
-  popupCancel.onclick = function() {
-    popup.classList.remove('active');
-  };
 }
-
-
-  function resetAllData() {
-    if (confirm(translations[lang].resetDataConfirm)) {
-      localStorage.removeItem("meditationHistory");
-      localStorage.removeItem("userPoints");
-      alert(translations[lang].resetDataAlert);
-      loadHistory();
-      updateUserLevelDisplay();
-      updateHomeLevelDisplay();
-    }
-  }
-
-  let historyChart;
-  function plotHistoryGraph(history) {
-    const labels = history.map((session, index) => `#${index + 1}`);
-    const avgIntervals = history.map(session => parseFloat(session.avgInterval));
-    const ctx = document.getElementById('historyGraph').getContext('2d');
-    if (historyChart) {
-      historyChart.destroy();
-    }
-    historyChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: translations[lang].avgInterval,
-          data: avgIntervals,
-       backgroundColor: 'rgba(0, 123, 255, 0.2)',  // Azul claro
-        borderColor: 'rgba(0, 123, 255, 1)',  // Azul oscuro
-        borderWidth: 2,
-        fill: true,
-        tension: 0.3
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#333' },
-            grid: { color: 'rgba(58, 58, 58, 0.1)' }
-          },
-          x: {
-            ticks: { color: '#333' },
-            grid: { display: false }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: { color: '#333' }
-          }
-        }
-      }
-    });
-  }
-
-  let summaryChart;
-  function plotSummaryGraph() {
-    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-    const labels = history.map((session, index) => `#${index + 1}`);
-    const avgIntervals = history.map(session => parseFloat(session.avgInterval));
-    const ctx = document.getElementById('summaryGraph').getContext('2d');
-    if (summaryChart) {
-      summaryChart.destroy();
-    }
-    summaryChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: translations[lang].avgInterval,
-          data: avgIntervals,
-          backgroundColor: 'rgba(0, 123, 255, 0.2)',  // Azul claro
-        borderColor: 'rgba(0, 123, 255, 1)',  // Azul oscuro
-        borderWidth: 2,
-        fill: true,
-        tension: 0.3
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#333' },
-            grid: { color: 'rgba(58, 58, 58, 0.1)' }
-          },
-          x: {
-            ticks: { color: '#333' },
-            grid: { display: false }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: { color: '#333' }
-          }
-        }
-      }
-    });
-  }
-
-  function removeSession(index) {
-    const history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-    history.splice(index, 1);
-    localStorage.setItem("meditationHistory", JSON.stringify(history));
-    loadHistory();
-  }
-
-  function getHourStreak(sessions) {
-    const filtered = sessions.filter(s => s.duration >= 3600);
-    if(filtered.length === 0) return 0;
-    let dates = filtered.map(s => new Date(s.date));
-    dates.sort((a, b) => a - b);
-    let streak = 1;
-    let maxStreak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      let diffDays = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
-      if(diffDays >= 0.9 && diffDays <= 1.5) {
-        streak++;
-      } else {
-        streak = 1;
-      }
-      if(streak > maxStreak) maxStreak = streak;
-    }
-    return maxStreak;
-  }
-
-  function updateUserLevelDisplay() {
-    let points = Math.floor(parseFloat(localStorage.getItem("userPoints")) || 0);
-    let level = getUserLevel(points);
-    let label = lang === "en" ? "Current Level:" : "Nivel Actual:";
-    let totalLabel = lang === "en" ? "Meditated minutes:" : "Minutos meditados:";
-    document.getElementById("levelDisplay").innerHTML = label + " " + level + " (" + totalLabel + " " + points + ")";
-  }
-
-  function getMaxStreak(sessions) {
-    if(sessions.length === 0) return 0;
-    let dates = sessions.map(s => new Date(s.date));
-    dates.sort((a,b) => a - b);
-    let streak = 1;
-    let maxStreak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      let diffDays = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
-      if(diffDays >= 0.9 && diffDays <= 1.5) {
-        streak++;
-      } else if(diffDays > 1.5) {
-        streak = 1;
-      }
-      if(streak > maxStreak) maxStreak = streak;
-    }
-    return maxStreak;
-  }
-
-  function updateUserPoints(sessionData) {
-    let points = parseFloat(localStorage.getItem("userPoints")) || 0;
-    let sessionPoints = sessionData.duration / 60;
-    if (sessionData.distractions == 0 && sessionData.duration >= 60) {
-      sessionPoints += 10;
-    }
-    points += sessionPoints;
-    localStorage.setItem("userPoints", points);
-    return points;
-  }
-
-  function getUserLevel(points) {
-    if(points < 100) return "Rookie";
-    else if(points < 400) return "Intermediate";
-    else if(points < 1200) return "Meditation God";
-    else return "Buddha";
-  }
-
-  function renderAchievements() {
-    let history = JSON.parse(localStorage.getItem("meditationHistory")) || [];
-    let totalSessions = history.length;
-    let totalMinutes = history.reduce((sum, session) => sum + session.duration / 60, 0);
-    let maxStreak = getMaxStreak(history);
-    let longMeditationCount = history.filter(s => s.duration >= 45 * 60).length;
-    let focusedSessionCount = history.filter(s => s.distractions <= 1).length;
-    let silentSessionCount = history.filter(s => s.distractions == 0).length;
-    let long30Count = history.filter(s => s.duration >= 30 * 60).length;
-    let hourStreak = getHourStreak(history);
-    
-    let stats = { totalSessions, totalMinutes, maxStreak, longMeditationCount, focusedSessionCount, silentSessionCount, long30Count, hourStreak };
-
-    let badgesHTML = "";
-    badgeDefinitions.forEach(badge => {
-      let achieved = badge.condition(stats);
-      let title = (lang === "es") ? badge.title_es : badge.title_en;
-      let desc = (lang === "es") ? badge.description_es : badge.description_en;
-      badgesHTML += `<div class="badge-card ${achieved ? "achieved" : ""}">
-        <div class="badge-icon">${badge.icon}</div>
-        <div class="badge-title">${title}</div>
-        <div class="badge-desc">${desc}</div>
-      </div>`;
-    });
-    document.getElementById("badgesContainer").innerHTML = badgesHTML;
-  }
-
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.target.id === "screen4" && mutation.target.classList.contains("active")) {
-        setTimeout(startMeditation, 500);
-      }
-    });
-  });
-  document.querySelectorAll('.screen').forEach(screen => {
-    observer.observe(screen, { attributes: true });
-  });
-
-  window.onload = () => {
-    updateTranslations();
-    goToScreen(1);
-  };
 </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased h-screen overflow-hidden flex items-center justify-center sm:p-4">
+
+  <!-- App Container -->
+  <div id="app-container" class="w-full max-w-md bg-white/90 backdrop-blur-2xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden h-full sm:h-[90vh] relative border border-white/50 ring-1 ring-black/5 flex flex-col">
+    <div id="app-content" class="h-full relative overflow-hidden">
+      <!-- Content injected by JS -->
+    </div>
+  </div>
+
+  <!-- Javascript Logic -->
+  <script>
+    /** 
+     * --- ICONS (SVG Strings) --- 
+     */
+    const Icons = {
+      Play: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
+      History: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/><path d="M12 7v5l4 2"/></svg>`,
+      Award: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>`,
+      X: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 12"/></svg>`,
+      Volume2: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
+      VolumeX: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></svg>`,
+      Check: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+      BookOpen: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+      ChevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+      ChevronLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+      Trash2: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`,
+      Calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
+      Pause: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`
+    };
+
+    /** 
+     * --- CONSTANTS & DATA --- 
+     */
+    const SOUNDS = [
+      { id: 'silence', label_en: 'Silence', label_es: 'Silencio', url: '' },
+      { id: 'ocean', label_en: 'Ocean', label_es: 'Océano', url: 'https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/ocean.mp3?v=1738588174113' },
+      { id: 'rain', label_en: 'Rain', label_es: 'Lluvia', url: 'https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/rain.mp3?v=1738588196191' },
+      { id: 'music', label_en: 'Music', label_es: 'Música', url: 'https://cdn.glitch.me/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/music.mp3?v=1738588191326' },
+    ];
+
+    const ALARM_URL = "https://cdn.glitch.global/8b472fdc-7a0e-4413-a5c0-df3086ec73d8/alarm.mp3?v=1738962246785";
+
+    const QUOTES = {
+      en: [
+        "Meditation is not about stopping thoughts, but recognizing them.",
+        "Consistency is key. 5 minutes daily is better than 1 hour weekly.",
+        "Your mind will wander. That is normal. Bringing it back is the training.",
+        "Focus is a muscle. Every time you return to the breath, you do a rep.",
+      ],
+      es: [
+        "La meditación no es detener los pensamientos, sino reconocerlos.",
+        "La constancia es clave. 5 minutos diarios es mejor que 1 hora semanal.",
+        "Tu mente divagará. Es normal. Traerla de vuelta es el entrenamiento.",
+        "El enfoque es un músculo. Cada vez que vuelves, haces una repetición.",
+      ]
+    };
+
+    const LEARN_SLIDES = [
+      { icon: "👋", title_en: "Welcome to ZenFocus", title_es: "Bienvenido a ZenFocus", text_en: "A powerful tool to train your mind and build the habit of meditation.", text_es: "Una herramienta poderosa para entrenar tu mente y formar el hábito de meditar." },
+      { icon: "🧠", title_en: "The Myth", title_es: "El Mito", text_en: "Meditation is NOT about blanking your mind! It’s about honing your attention.", text_es: "¡La meditación NO es poner la mente en blanco! Se trata de afinar tu atención." },
+      { icon: "😌", title_en: "The Reality", title_es: "La Realidad", text_en: "Your mind will wander. That is completely normal. Don't judge yourself.", text_es: "Tu mente se distraerá. Eso es totalmente normal. No te juzgues." },
+      { icon: "💪", title_en: "The Muscle", title_es: "El Músculo", text_en: "Each time you notice you're distracted and bring your focus back, you do a 'rep'.", text_es: "Cada vez que notas que te distrajiste y vuelves al presente, haces una 'repetición'." },
+      { icon: "📈", title_en: "Tracking", title_es: "Registro", text_en: "We track distractions to visualize your progress. As your 'muscle' grows, distractions decrease.", text_es: "Contamos las distracciones para visualizar tu progreso. Al crecer tu 'músculo', bajan." },
+      { icon: "⏱️", title_en: "Consistency", title_es: "Constancia", text_en: "10 minutes a day is better than 1 hour a week. Small steps transform your life.", text_es: "10 minutos al día es mejor que 1 hora a la semana. Pequeños pasos transforman tu vida." }
+    ];
+
+    const TRANSLATIONS = {
+      en: {
+        title: "ZenFocus", subtitle: "Mindfulness Trainer", newSession: "New Session", history: "Journey", achievements: "Badges", learn: "Zen Guide",
+        minutes: "minutes", start: "Begin Journey", stop: "Stop", distractions: "Distractions", summary: "Session Complete",
+        totalTime: "Total Time", avgInterval: "Focus Interval", backHome: "Return Home", delete: "Delete", reset: "Reset Data",
+        confirmReset: "Delete all progress?", level: "Level", points: "Points", tapToDistract: "Tap screen when distracted",
+        greatJob: "You are building a powerful habit.", selectSound: "Environment", selectDuration: "Duration",
+        resume: "Resume", cancel: "Cancel", confirm: "Confirm", save: "Save Progress", discard: "Discard", paused: "Paused",
+        prev: "Prev", next: "Next", finish: "Finish", learnTitle: "How it Works"
+      },
+      es: {
+        title: "ZenFocus", subtitle: "Entrenador Mental", newSession: "Nueva Sesión", history: "Mi Viaje", achievements: "Insignias", learn: "Guía Zen",
+        minutes: "minutos", start: "Comenzar Viaje", stop: "Parar", distractions: "Distracciones", summary: "Sesión Completa",
+        totalTime: "Tiempo Total", avgInterval: "Intervalo de Foco", backHome: "Volver al Inicio", delete: "Eliminar", reset: "Borrar Datos",
+        confirmReset: "¿Borrar todo el progreso?", level: "Nivel", points: "Puntos", tapToDistract: "Toca la pantalla si te distraes",
+        greatJob: "Estás construyendo un hábito poderoso.", selectSound: "Ambiente", selectDuration: "Duración",
+        resume: "Reanudar", cancel: "Cancelar", confirm: "Confirmar", save: "Guardar Progreso", discard: "Descartar", paused: "Pausado",
+        prev: "Ant", next: "Sig", finish: "Finalizar", learnTitle: "Cómo Funciona"
+      }
+    };
+
+    /** 
+     * --- STATE MANAGEMENT --- 
+     */
+    const State = {
+      view: 'HOME',
+      lang: navigator.language.startsWith('es') ? 'es' : 'en',
+      duration: 5,
+      sound: 'ocean',
+      activeSession: {
+        timer: null,
+        timeLeft: 0,
+        distractions: 0,
+        timestamps: [],
+        paused: false,
+        startTime: 0
+      },
+      learnSlide: 0
+    };
+
+    // References
+    const bgAudio = new Audio();
+    bgAudio.loop = true;
+    const alarmAudio = new Audio(ALARM_URL);
+    let wakeLock = null;
+
+    /** 
+     * --- LOGIC: STORAGE & STATS --- 
+     */
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem('zenfocus_history') || '[]'); } catch { return []; }
+    }
+
+    function saveSession(session) {
+      const history = getHistory();
+      history.unshift(session);
+      localStorage.setItem('zenfocus_history', JSON.stringify(history));
+      return history;
+    }
+
+    function clearData() {
+      if(confirm(TRANSLATIONS[State.lang].confirmReset)) {
+        localStorage.removeItem('zenfocus_history');
+        renderHome();
+      }
+    }
+
+    function calculateStats(history) {
+      if (!history.length) return { totalSessions: 0, totalMinutes: 0, maxStreak: 0, points: 0, badges: {} };
+      
+      const totalSessions = history.length;
+      const totalMinutes = Math.floor(history.reduce((a, b) => a + b.durationSeconds, 0) / 60);
+      
+      // Points
+      const points = Math.floor(history.reduce((acc, curr) => {
+        let p = curr.durationSeconds / 60;
+        if (curr.distractions === 0 && curr.durationSeconds > 300) p += 5; 
+        return acc + p;
+      }, 0));
+
+      // Streak logic simplified for vanilla
+      const dates = [...new Set(history.map(h => new Date(h.date).setHours(0,0,0,0)))].sort((a,b) => b-a);
+      let streak = dates.length > 0 ? 1 : 0;
+      // (Simple streak calculation for demo purposes)
+      
+      return { 
+        totalSessions, totalMinutes, maxStreak: streak, points, 
+        longMeditationCount: history.filter(s => s.durationSeconds >= 45*60).length,
+        focusedSessionCount: history.filter(s => s.distractions <= 1).length,
+        silentSessionCount: history.filter(s => s.distractions === 0).length,
+        long30Count: history.filter(s => s.durationSeconds >= 30*60).length,
+        hourStreak: 0 // Placeholder
+      };
+    }
+
+    function getLevel(points) {
+      const levels = [
+        { min: 0, en: 'Novice', es: 'Novato' },
+        { min: 100, en: 'Seeker', es: 'Buscador' },
+        { min: 400, en: 'Initiate', es: 'Iniciado' },
+        { min: 800, en: 'Adept', es: 'Adepto' },
+        { min: 1500, en: 'Master', es: 'Maestro' },
+        { min: 3000, en: 'Sage', es: 'Sabio' },
+        { min: 6000, en: 'Buddha', es: 'Buda' }
+      ];
+      let lvl = levels[0];
+      let nextLvl = levels[1];
+      for(let i=levels.length-1; i>=0; i--) {
+        if(points >= levels[i].min) {
+          lvl = levels[i];
+          nextLvl = levels[i+1] || { min: points * 1.5 }; // fallback
+          break;
+        }
+      }
+      const title = State.lang === 'es' ? lvl.es : lvl.en;
+      const progress = Math.min(100, ((points - lvl.min) / (nextLvl.min - lvl.min)) * 100);
+      return { title, progress, points };
+    }
+
+    /** 
+     * --- RENDERING FUNCTIONS --- 
+     */
+    const app = document.getElementById('app-content');
+
+    function navigate(view) {
+      State.view = view;
+      if (view === 'HOME') renderHome();
+      else if (view === 'SETUP') renderSetup();
+      else if (view === 'ACTIVE') renderActive();
+      else if (view === 'SUMMARY') renderSummary();
+      else if (view === 'HISTORY') renderHistory();
+      else if (view === 'BADGES') renderBadges();
+      else if (view === 'LEARN') renderLearn();
+    }
+
+    function toggleLang() {
+      State.lang = State.lang === 'en' ? 'es' : 'en';
+      navigate(State.view);
+    }
+
+    // --- HOME ---
+    function renderHome() {
+      const stats = calculateStats(getHistory());
+      const level = getLevel(stats.points);
+      const t = TRANSLATIONS[State.lang];
+      const quote = QUOTES[State.lang][Math.floor(Math.random() * QUOTES[State.lang].length)];
+
+      app.innerHTML = `
+        <div class="flex flex-col h-full space-y-5 p-6 animate-fade-in overflow-y-auto scrollbar-hide">
+          <!-- Header -->
+          <div class="flex justify-between items-center pt-2">
+            <div>
+              <h1 class="text-3xl font-bold text-slate-800">${t.title}</h1>
+              <p class="text-sm text-brand-600 font-medium tracking-wide">${t.subtitle}</p>
+            </div>
+            <button onclick="toggleLang()" class="text-xs font-bold px-3 py-1 bg-white border border-slate-200 rounded-full shadow-sm text-slate-600 hover:bg-slate-50 transition">
+              ${State.lang === 'en' ? 'ES' : 'EN'}
+            </button>
+          </div>
+
+          <!-- Level Card -->
+          <div class="bg-gradient-to-r from-brand-600 to-brand-500 rounded-3xl p-6 text-white shadow-xl shadow-brand-200 relative overflow-hidden shrink-0">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+            <div class="flex justify-between items-end mb-4 relative z-10">
+              <div>
+                <p class="text-brand-100 text-xs font-bold uppercase tracking-widest">${t.level}</p>
+                <h2 class="text-3xl font-bold mt-1">${level.title}</h2>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-bold">${level.points}</span>
+                <span class="text-xs text-brand-100 block opacity-80">${t.points}</span>
+              </div>
+            </div>
+            <div class="w-full bg-black/20 rounded-full h-1.5 mb-1 relative z-10 overflow-hidden">
+              <div class="bg-white rounded-full h-1.5 transition-all duration-1000" style="width: ${level.progress}%"></div>
+            </div>
+          </div>
+
+          <!-- Quote -->
+          <div class="bg-white/80 backdrop-blur p-5 rounded-2xl border border-white shadow-sm shrink-0">
+            <p class="text-slate-600 italic text-center text-sm leading-relaxed">"${quote}"</p>
+          </div>
+
+          <!-- Learn Button -->
+          <button onclick="startLearn()" class="bg-blue-50 hover:bg-blue-100 transition-colors p-4 rounded-2xl flex items-center gap-4 group shrink-0">
+            <div class="bg-white p-2 rounded-full shadow-sm text-blue-500 group-hover:scale-110 transition-transform">
+              ${Icons.BookOpen}
+            </div>
+            <div class="text-left flex-1">
+               <h3 class="font-bold text-slate-800 text-sm">${t.learn}</h3>
+               <p class="text-xs text-slate-500">${t.learnTitle}</p>
+            </div>
+            <div class="text-slate-400">${Icons.ChevronRight}</div>
+          </button>
+
+          <!-- Main Actions -->
+          <div class="mt-auto space-y-3 pb-2">
+            <button onclick="navigate('SETUP')" class="w-full py-4 px-6 rounded-2xl font-semibold bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700 active:scale-95 flex items-center justify-center gap-2 text-lg">
+              ${Icons.Play} ${t.newSession}
+            </button>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="navigate('HISTORY')" class="py-3 px-6 rounded-2xl font-semibold bg-white text-slate-700 border border-slate-200 shadow-sm hover:border-brand-300 hover:text-brand-600 active:scale-95 flex items-center justify-center gap-2">
+                ${Icons.History} ${t.history}
+              </button>
+              <button onclick="navigate('BADGES')" class="py-3 px-6 rounded-2xl font-semibold bg-white text-slate-700 border border-slate-200 shadow-sm hover:border-brand-300 hover:text-brand-600 active:scale-95 flex items-center justify-center gap-2">
+                ${Icons.Award} ${t.achievements}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- SETUP ---
+    function renderSetup() {
+      const t = TRANSLATIONS[State.lang];
+      app.innerHTML = `
+        <div class="flex flex-col h-full relative">
+          <div class="flex items-center p-6 pb-2 shrink-0">
+            <button onclick="navigate('HOME')" class="p-2 -ml-2 text-slate-400 hover:text-slate-600">${Icons.X}</button>
+            <h2 class="text-xl font-bold ml-2 text-slate-800">${t.newSession}</h2>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-6 pb-24 scrollbar-hide">
+            <!-- Duration -->
+            <div class="mb-8 mt-2">
+              <label class="block text-slate-500 text-sm font-bold uppercase tracking-wider mb-4">${t.selectDuration}</label>
+              <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 text-center relative overflow-hidden">
+                 <div class="absolute top-0 left-0 w-full h-2 bg-brand-500"></div>
+                 <div class="flex items-baseline justify-center gap-2">
+                    <span id="duration-display" class="text-6xl font-bold text-slate-800">${State.duration}</span>
+                    <span class="text-slate-400 font-medium text-lg">${t.minutes}</span>
+                 </div>
+                <input type="range" min="1" max="60" value="${State.duration}" 
+                  class="w-full mt-8 h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-500"
+                  oninput="updateDuration(this.value)">
+              </div>
+            </div>
+
+            <!-- Sound -->
+            <div class="mb-4">
+              <label class="block text-slate-500 text-sm font-bold uppercase tracking-wider mb-4">${t.selectSound}</label>
+              <div class="grid grid-cols-2 gap-3" id="sound-grid">
+                <!-- Sounds injected here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Fixed Start Button -->
+          <div class="absolute bottom-0 left-0 w-full bg-white/80 backdrop-blur-md p-6 border-t border-white">
+            <button onclick="startSession()" class="w-full py-3 px-6 rounded-2xl font-semibold bg-brand-600 text-white shadow-xl shadow-brand-200 hover:bg-brand-700 active:scale-95 flex items-center justify-center gap-2">
+              ${t.start}
+            </button>
+          </div>
+        </div>
+      `;
+      renderSounds();
+    }
+
+    function updateDuration(val) {
+      State.duration = parseInt(val);
+      document.getElementById('duration-display').innerText = val;
+    }
+
+    function renderSounds() {
+      const grid = document.getElementById('sound-grid');
+      grid.innerHTML = SOUNDS.map(s => {
+        const isSelected = State.sound === s.id;
+        const label = State.lang === 'es' ? s.label_es : s.label_en;
+        return `
+          <button onclick="selectSound('${s.id}')" 
+            class="p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden
+            ${isSelected ? 'border-brand-500 bg-brand-50 text-brand-700 shadow-md' : 'border-transparent bg-white text-slate-400 hover:bg-slate-50'}">
+            ${isSelected ? '<div class="absolute top-2 right-2 w-2 h-2 bg-brand-500 rounded-full"></div>' : ''}
+            <div class="${isSelected ? '' : 'opacity-70'}">${isSelected ? Icons.Volume2 : Icons.VolumeX}</div>
+            <span class="text-sm font-semibold">${label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectSound(id) {
+      State.sound = id;
+      renderSounds();
+    }
+
+    // --- ACTIVE SESSION ---
+    async function startSession() {
+      // Audio Setup
+      const soundObj = SOUNDS.find(s => s.id === State.sound);
+      if(soundObj && soundObj.url) {
+        bgAudio.src = soundObj.url;
+        bgAudio.play().catch(e => console.log(e));
+      } else {
+        bgAudio.pause();
+      }
+
+      // Wake Lock
+      if ('wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+      }
+
+      // Init State
+      State.activeSession = {
+        timeLeft: State.duration * 60,
+        distractions: 0,
+        timestamps: [Date.now()],
+        paused: false,
+        startTime: Date.now()
+      };
+
+      navigate('ACTIVE');
+      startTimer();
+    }
+
+    function startTimer() {
+      if(State.activeSession.timer) clearInterval(State.activeSession.timer);
+      State.activeSession.timer = setInterval(() => {
+        if(!State.activeSession.paused) {
+          State.activeSession.timeLeft--;
+          updateTimerDisplay();
+          if(State.activeSession.timeLeft <= 0) {
+            finishSession(true);
+          }
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(State.activeSession.timeLeft / 60);
+      const s = State.activeSession.timeLeft % 60;
+      const timeStr = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      const el = document.getElementById('timer-display');
+      if(el) el.innerText = timeStr;
+    }
+
+    function recordDistraction() {
+      if(State.activeSession.paused) return;
+      State.activeSession.distractions++;
+      State.activeSession.timestamps.push(Date.now());
+      
+      // Update UI Text
+      const t = TRANSLATIONS[State.lang];
+      const distEl = document.getElementById('distraction-text');
+      if(distEl) distEl.innerText = `${State.activeSession.distractions} ${t.distractions}`;
+
+      // Ripple Effect
+      const container = document.getElementById('active-container');
+      const ripple = document.createElement('div');
+      ripple.className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-red-500/10 rounded-full animate-ping pointer-events-none";
+      container.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    }
+
+    function togglePause() {
+      State.activeSession.paused = !State.activeSession.paused;
+      const menu = document.getElementById('pause-menu');
+      if(State.activeSession.paused) {
+        menu.classList.remove('hidden');
+        bgAudio.pause();
+      } else {
+        menu.classList.add('hidden');
+        if(SOUNDS.find(s => s.id === State.sound).url) bgAudio.play();
+      }
+    }
+
+    function discardSession() {
+      clearInterval(State.activeSession.timer);
+      bgAudio.pause();
+      if(wakeLock) wakeLock.release();
+      navigate('HOME');
+    }
+
+    function finishSession(completed) {
+      clearInterval(State.activeSession.timer);
+      bgAudio.pause();
+      if(wakeLock) wakeLock.release();
+      
+      if(completed) {
+        alarmAudio.currentTime = 0;
+        alarmAudio.play().catch(e=>console.log(e));
+      }
+
+      // Calculate Data
+      const totalDuration = (State.duration * 60) - State.activeSession.timeLeft;
+      
+      // If manually stopped very early, maybe just discard? But user clicked Save.
+      // Calc Avg Interval
+      const timestamps = [...State.activeSession.timestamps, Date.now()];
+      let avg = totalDuration;
+      if(timestamps.length > 2) {
+        let totalInt = 0;
+        for(let i=1; i<timestamps.length; i++) totalInt += (timestamps[i] - timestamps[i-1]);
+        avg = Math.floor((totalInt / (timestamps.length-1)) / 1000);
+      }
+
+      const sessionData = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        durationSeconds: completed ? State.duration * 60 : totalDuration,
+        distractions: State.activeSession.distractions,
+        avgIntervalSeconds: avg
+      };
+
+      saveSession(sessionData);
+      State.lastSession = sessionData; // temp store for summary
+      navigate('SUMMARY');
+    }
+
+    function renderActive() {
+      const t = TRANSLATIONS[State.lang];
+      app.innerHTML = `
+        <div id="active-container" class="w-full h-full bg-brand-50 relative overflow-hidden flex flex-col items-center justify-center" onclick="recordDistraction()">
+          
+          <!-- Stop Button (Top Right) -->
+          <button onclick="event.stopPropagation(); togglePause()" class="absolute top-6 right-6 z-50 p-3 bg-white/50 backdrop-blur rounded-full text-slate-600 hover:bg-white hover:text-red-500 shadow-sm transition-all">
+            ${Icons.Pause}
+          </button>
+
+          <!-- Breathing Visual -->
+          <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-brand-200 rounded-full blur-[80px] opacity-40 animate-breathe pointer-events-none"></div>
+
+          <!-- Timer & Counter -->
+          <div class="relative z-10 text-center pointer-events-none select-none">
+            <div id="timer-display" class="text-[5rem] leading-none font-light text-brand-900 tracking-tight font-mono mb-6 drop-shadow-sm">
+              ${String(State.duration).padStart(2,'0')}:00
+            </div>
+            <p id="distraction-text" class="text-brand-800/60 text-sm font-bold uppercase tracking-[0.2em] mb-8">
+              ${t.tapToDistract}
+            </p>
+          </div>
+
+          <!-- Pause Menu Overlay -->
+          <div id="pause-menu" class="hidden absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-fade-in" onclick="event.stopPropagation()">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">${t.paused}</h2>
+            <div class="flex flex-col gap-3 w-full max-w-xs mt-6">
+              <button onclick="togglePause()" class="py-3 rounded-xl bg-brand-600 text-white font-semibold shadow-lg shadow-brand-200 hover:bg-brand-700">
+                ${t.resume}
+              </button>
+              <button onclick="finishSession(false)" class="py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50">
+                ${t.save}
+              </button>
+              <button onclick="discardSession()" class="py-3 rounded-xl bg-red-50 text-red-500 border border-red-100 font-semibold hover:bg-red-100">
+                ${t.discard}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // --- SUMMARY ---
+    function renderSummary() {
+      const session = State.lastSession;
+      const t = TRANSLATIONS[State.lang];
+      
+      app.innerHTML = `
+        <div class="flex flex-col h-full animate-fade-in justify-center p-6">
+          <div class="text-center py-6">
+            <div class="inline-flex p-5 bg-gradient-to-br from-green-100 to-green-200 text-green-600 rounded-full mb-6 shadow-sm ring-4 ring-green-50">
+              ${Icons.Check}
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">${t.summary}</h2>
+            <p class="text-slate-500 max-w-[200px] mx-auto leading-tight">${t.greatJob}</p>
+          </div>
+
+          <div class="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-100 border border-slate-50 mb-8">
+            <div class="grid grid-cols-2 gap-8 mb-6">
+              <div class="text-center">
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">${t.totalTime}</p>
+                <p class="text-2xl font-bold text-slate-700">${Math.floor(session.durationSeconds / 60)}<span class="text-sm text-slate-400 font-normal">m</span></p>
+              </div>
+              <div class="text-center relative">
+                <div class="absolute left-0 top-2 bottom-2 w-px bg-slate-100"></div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">${t.distractions}</p>
+                <p class="text-2xl font-bold text-slate-700">${session.distractions}</p>
+              </div>
+            </div>
+            <div class="bg-brand-50 rounded-2xl p-4 text-center border border-brand-100">
+              <p class="text-[10px] text-brand-400 uppercase font-bold tracking-wider mb-1">${t.avgInterval}</p>
+              <p class="text-3xl font-bold text-brand-700">${session.avgIntervalSeconds} <span class="text-sm font-normal opacity-60">sec</span></p>
+            </div>
+          </div>
+
+          <button onclick="navigate('HOME')" class="mt-auto w-full py-3 px-6 rounded-2xl font-semibold bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700">
+            ${t.backHome}
+          </button>
+        </div>
+      `;
+    }
+
+    // --- HISTORY ---
+    function renderHistory() {
+      const t = TRANSLATIONS[State.lang];
+      const history = getHistory();
+
+      app.innerHTML = `
+        <div class="flex flex-col h-full p-6">
+           <div class="flex items-center mb-6 shrink-0">
+            <button onclick="navigate('HOME')" class="p-2 -ml-2 text-slate-400 hover:text-slate-600">${Icons.X}</button>
+            <h2 class="text-xl font-bold ml-2 text-slate-800">${t.history}</h2>
+          </div>
+
+          <!-- Chart Container -->
+          <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-6 h-48 w-full shrink-0 relative">
+             <canvas id="historyChart"></canvas>
+          </div>
+
+          <!-- List -->
+          <div class="flex-1 overflow-y-auto -mx-6 px-6 pb-4 space-y-4 scrollbar-hide">
+            ${history.length === 0 ? `<div class="text-center py-10 opacity-50"><div class="mx-auto mb-2 text-slate-300 w-12 h-12 flex justify-center">${Icons.Calendar}</div><p>No sessions yet.</p></div>` : ''}
+            
+            ${history.map((h, i) => {
+              const isGood = h.avgIntervalSeconds > 60;
+              return `
+                <div class="bg-white p-4 rounded-2xl border border-slate-50 shadow-sm flex flex-col gap-2 relative overflow-hidden group">
+                  <div class="absolute left-0 top-0 bottom-0 w-1 ${isGood ? 'bg-brand-400' : 'bg-orange-300'}"></div>
+                  <div class="flex justify-between items-start pl-3">
+                    <div>
+                      <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">${new Date(h.date).toLocaleDateString()}</p>
+                      <p class="text-lg font-bold text-slate-700 mt-0.5">${Math.floor(h.durationSeconds / 60)} <span class="text-sm font-normal text-slate-500">mins</span></p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xl font-bold ${isGood ? 'text-brand-600' : 'text-orange-400'}">${h.avgIntervalSeconds}s</p>
+                      <p class="text-[10px] text-slate-400 font-bold uppercase">Focus Interval</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 pl-3 mt-1 pt-2 border-t border-slate-50">
+                     <span class="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md">${h.distractions} distractions</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+            
+            ${history.length > 0 ? `<button onclick="clearData()" class="w-full text-xs text-red-400 py-4 flex items-center justify-center gap-2 hover:text-red-600">${Icons.Trash2} ${t.reset}</button>` : ''}
+          </div>
+        </div>
+      `;
+
+      if(history.length > 0) {
+        // Draw Chart.js
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        const dataPoints = history.slice(0, 10).reverse(); // Last 10
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: dataPoints.map((_, i) => i + 1),
+            datasets: [{
+              label: 'Focus Interval',
+              data: dataPoints.map(d => d.avgIntervalSeconds),
+              borderColor: '#0d9488',
+              backgroundColor: '#ccfbf1',
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#0d9488',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { display: false },
+              y: { display: false, min: 0 }
+            },
+            layout: { padding: 10 }
+          }
+        });
+      }
+    }
+
+    // --- BADGES ---
+    function renderBadges() {
+      const t = TRANSLATIONS[State.lang];
+      const stats = calculateStats(getHistory());
+      const badges = [
+        { id: 1, en: "First Step", es: "Primer Paso", icon: "🌱", desc_en: "First session.", desc_es: "Primera sesión.", cond: s => s.totalSessions >= 1 },
+        { id: 2, en: "3-Day Streak", es: "Racha 3 Días", icon: "🔥", desc_en: "3 days row.", desc_es: "3 días seguidos.", cond: s => s.maxStreak >= 3 },
+        { id: 3, en: "7-Day Streak", es: "Racha 7 Días", icon: "🗓️", desc_en: "7 days row.", desc_es: "7 días seguidos.", cond: s => s.maxStreak >= 7 },
+        { id: 6, en: "Deep Diver", es: "Buceador", icon: "🌊", desc_en: "Session > 45m.", desc_es: "Sesión > 45m.", cond: s => s.longMeditationCount >= 1 },
+        { id: 7, en: "Laser Focus", es: "Enfoque Láser", icon: "🎯", desc_en: "<= 1 distraction.", desc_es: "<= 1 distracción.", cond: s => s.focusedSessionCount >= 1 },
+        { id: 8, en: "Silent Mind", es: "Mente Silenciosa", icon: "🤫", desc_en: "0 distractions.", desc_es: "0 distracciones.", cond: s => s.silentSessionCount >= 1 },
+        { id: 10, en: "Dedicated", es: "Dedicado", icon: "🏅", desc_en: "10 sessions.", desc_es: "10 sesiones.", cond: s => s.totalSessions >= 10 },
+        { id: 12, en: "Marathon", es: "Maratón", icon: "⏳", desc_en: "300 total mins.", desc_es: "300 mins totales.", cond: s => s.totalMinutes >= 300 },
+      ];
+
+      app.innerHTML = `
+        <div class="flex flex-col h-full p-6">
+           <div class="flex items-center mb-6 shrink-0">
+            <button onclick="navigate('HOME')" class="p-2 -ml-2 text-slate-400 hover:text-slate-600">${Icons.X}</button>
+            <h2 class="text-xl font-bold ml-2 text-slate-800">${t.achievements}</h2>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 overflow-y-auto pb-6 scrollbar-hide">
+            ${badges.map(b => {
+              const unlocked = b.cond(stats);
+              return `
+                <div class="p-4 rounded-2xl border text-center transition-all relative overflow-hidden group ${unlocked ? 'bg-white border-brand-100 shadow-sm' : 'bg-slate-50 border-transparent'}">
+                  ${!unlocked ? '<div class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10"></div>' : '<div class="absolute top-2 right-2 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>'}
+                  <div class="text-4xl mb-3 ${unlocked ? '' : 'grayscale opacity-50'}">${b.icon}</div>
+                  <h3 class="font-bold text-sm mb-1 ${unlocked ? 'text-slate-800' : 'text-slate-400'}">${State.lang==='es'?b.es:b.en}</h3>
+                  <p class="text-[10px] text-slate-500">${State.lang==='es'?b.desc_es:b.desc_en}</p>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- LEARN ---
+    function startLearn() {
+      State.learnSlide = 0;
+      navigate('LEARN');
+    }
+
+    function moveSlide(dir) {
+      State.learnSlide += dir;
+      renderLearn();
+    }
+
+    function renderLearn() {
+      const slide = LEARN_SLIDES[State.learnSlide];
+      const total = LEARN_SLIDES.length;
+      const t = TRANSLATIONS[State.lang];
+
+      app.innerHTML = `
+        <div class="flex flex-col h-full relative p-6">
+          <button onclick="navigate('HOME')" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 z-10">${Icons.X}</button>
+          
+          <div class="flex-1 flex flex-col justify-center items-center text-center animate-fade-in">
+            <div class="text-6xl mb-6 animate-bounce-slow">${slide.icon}</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">${State.lang === 'es' ? slide.title_es : slide.title_en}</h2>
+            <p class="text-slate-600 text-lg leading-relaxed">${State.lang === 'es' ? slide.text_es : slide.text_en}</p>
+          </div>
+
+          <div class="mt-auto">
+            <div class="flex justify-center gap-2 mb-6">
+              ${LEARN_SLIDES.map((_, i) => `<div class="h-1.5 rounded-full transition-all duration-300 ${i === State.learnSlide ? 'w-6 bg-brand-500' : 'w-1.5 bg-slate-200'}"></div>`).join('')}
+            </div>
+            <div class="flex justify-between gap-4">
+              <button onclick="moveSlide(-1)" class="flex-1 py-3 px-4 rounded-xl font-semibold text-slate-500 hover:bg-slate-50 flex items-center justify-center gap-2 ${State.learnSlide === 0 ? 'invisible' : ''}">
+                ${Icons.ChevronLeft} ${t.prev}
+              </button>
+              
+              <button onclick="${State.learnSlide === total - 1 ? "navigate('HOME')" : "moveSlide(1)"}" class="flex-1 py-3 px-4 rounded-xl font-semibold bg-brand-600 text-white shadow-lg hover:bg-brand-700 flex items-center justify-center gap-2">
+                ${State.learnSlide === total - 1 ? t.finish : t.next} ${State.learnSlide < total - 1 ? Icons.ChevronRight : ''}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Init
+    renderHome();
+
+  </script>
 </body>
 </html>
