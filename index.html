@@ -35,7 +35,7 @@
   </script>
 
   <style>
-    body { font-family: 'Poppins', sans-serif; user-select: none; -webkit-user-select: none; }
+    body { font-family: 'Poppins', sans-serif; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
     
     /* Scrollbar invisible */
     .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -62,6 +62,12 @@
       50% { transform: translateY(5%); }
     }
     .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
+    
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
     .no-tap-highlight { -webkit-tap-highlight-color: transparent; }
   </style>
@@ -134,6 +140,24 @@
       ]
     };
 
+    const BADGE_DEFINITIONS = [
+      { id: 1, title_en: "First Step", title_es: "Primer Paso", icon: "🌱", description_en: "Complete your first session.", description_es: "Completa tu primera sesión.", condition: (stats) => stats.totalSessions >= 1 },
+      { id: 2, title_en: "3-Day Streak", title_es: "Racha 3 Días", icon: "🔥", description_en: "Meditate 3 consecutive days.", description_es: "Medita 3 días seguidos.", condition: (stats) => stats.maxStreak >= 3 },
+      { id: 3, title_en: "7-Day Streak", title_es: "Racha 7 Días", icon: "🗓️", description_en: "Meditate 7 consecutive days.", description_es: "Medita 7 días seguidos.", condition: (stats) => stats.maxStreak >= 7 },
+      { id: 4, title_en: "15-Day Streak", title_es: "Racha 15 Días", icon: "🚀", description_en: "Meditate 15 consecutive days.", description_es: "Medita 15 días seguidos.", condition: (stats) => stats.maxStreak >= 15 },
+      { id: 5, title_en: "30-Day Streak", title_es: "Racha 30 Días", icon: "💎", description_en: "Meditate 30 consecutive days.", description_es: "Medita 30 días seguidos.", condition: (stats) => stats.maxStreak >= 30 },
+      { id: 6, title_en: "Deep Diver", title_es: "Buceador", icon: "🌊", description_en: "One session > 45 mins.", description_es: "Una sesión > 45 mins.", condition: (stats) => stats.longMeditationCount >= 1 },
+      { id: 7, title_en: "Laser Focus", title_es: "Enfoque Láser", icon: "🎯", description_en: "Session with ≤ 1 distraction.", description_es: "Sesión con ≤ 1 distracción.", condition: (stats) => stats.focusedSessionCount >= 1 },
+      { id: 8, title_en: "Silent Mind", title_es: "Mente Silenciosa", icon: "🤫", description_en: "Session with 0 distractions.", description_es: "Sesión sin distracciones.", condition: (stats) => stats.silentSessionCount >= 1 },
+      { id: 9, title_en: "Zen Warrior", title_es: "Guerrero Zen", icon: "⚔️", description_en: "5 sessions > 30 mins.", description_es: "5 sesiones > 30 mins.", condition: (stats) => stats.long30Count >= 5 },
+      { id: 10, title_en: "Dedicated", title_es: "Dedicado", icon: "🏅", description_en: "Complete 10 sessions.", description_es: "Completa 10 sesiones.", condition: (stats) => stats.totalSessions >= 10 },
+      { id: 11, title_en: "Master", title_es: "Maestro", icon: "👑", description_en: "Complete 50 sessions.", description_es: "Completa 50 sesiones.", condition: (stats) => stats.totalSessions >= 50 },
+      { id: 12, title_en: "Marathon", title_es: "Maratón", icon: "⏳", description_en: "300 total minutes.", description_es: "300 minutos totales.", condition: (stats) => stats.totalMinutes >= 300 },
+      { id: 13, title_en: "Guru", title_es: "Gurú", icon: "🧘", description_en: "600 total minutes.", description_es: "600 minutos totales.", condition: (stats) => stats.totalMinutes >= 600 },
+      { id: 14, title_en: "Enlightened", title_es: "Iluminado", icon: "✨", description_en: "900 total minutes.", description_es: "900 minutos totales.", condition: (stats) => stats.totalMinutes >= 900 },
+      { id: 15, title_en: "Iron Will", title_es: "Voluntad de Hierro", icon: "🦾", description_en: "7-day streak of 1 hour sessions.", description_es: "Racha de 7 días de 1 hora.", condition: (stats) => stats.hourStreak >= 7 }
+    ];
+
     const LEARN_SLIDES = [
       { icon: "👋", title_en: "Welcome to ZenFocus", title_es: "Bienvenido a ZenFocus", text_en: "A powerful tool to train your mind and build the habit of meditation.", text_es: "Una herramienta poderosa para entrenar tu mente y formar el hábito de meditar." },
       { icon: "🧠", title_en: "The Myth", title_es: "El Mito", text_en: "Meditation is NOT about blanking your mind! It’s about honing your attention.", text_es: "¡La meditación NO es poner la mente en blanco! Se trata de afinar tu atención." },
@@ -151,7 +175,7 @@
         confirmReset: "Delete all progress?", level: "Level", points: "Points", tapToDistract: "Tap screen when distracted",
         greatJob: "You are building a powerful habit.", selectSound: "Environment", selectDuration: "Duration",
         resume: "Resume", cancel: "Cancel", confirm: "Confirm", save: "Save Progress", discard: "Discard", paused: "Paused",
-        prev: "Prev", next: "Next", finish: "Finish", learnTitle: "How it Works"
+        prev: "Prev", next: "Next", finish: "Finish", learnTitle: "How it Works", newBadge: "Badge Unlocked!", awesome: "Awesome!"
       },
       es: {
         title: "ZenFocus", subtitle: "Entrenador Mental", newSession: "Nueva Sesión", history: "Mi Viaje", achievements: "Insignias", learn: "Guía Zen",
@@ -160,7 +184,7 @@
         confirmReset: "¿Borrar todo el progreso?", level: "Nivel", points: "Puntos", tapToDistract: "Toca la pantalla si te distraes",
         greatJob: "Estás construyendo un hábito poderoso.", selectSound: "Ambiente", selectDuration: "Duración",
         resume: "Reanudar", cancel: "Cancelar", confirm: "Confirmar", save: "Guardar Progreso", discard: "Descartar", paused: "Pausado",
-        prev: "Ant", next: "Sig", finish: "Finalizar", learnTitle: "Cómo Funciona"
+        prev: "Ant", next: "Sig", finish: "Finalizar", learnTitle: "Cómo Funciona", newBadge: "¡Insignia Desbloqueada!", awesome: "¡Increíble!"
       }
     };
 
@@ -180,7 +204,8 @@
         paused: false,
         startTime: 0
       },
-      learnSlide: 0
+      learnSlide: 0,
+      newUnlockedBadges: [] // Queue for popup
     };
 
     // References
@@ -211,49 +236,66 @@
     }
 
     function calculateStats(history) {
-      if (!history.length) return { totalSessions: 0, totalMinutes: 0, maxStreak: 0, points: 0, badges: {} };
+      if (!history.length) return { totalSessions: 0, totalMinutes: 0, maxStreak: 0, points: 0, longMeditationCount: 0, focusedSessionCount: 0, silentSessionCount: 0, long30Count: 0, hourStreak: 0 };
       
       const totalSessions = history.length;
       const totalMinutes = Math.floor(history.reduce((a, b) => a + b.durationSeconds, 0) / 60);
       
-      // Points
+      // Points Logic: x10 Multiplier
       const points = Math.floor(history.reduce((acc, curr) => {
-        let p = curr.durationSeconds / 60;
-        if (curr.distractions === 0 && curr.durationSeconds > 300) p += 5; 
+        let p = (curr.durationSeconds / 60) * 10;
+        if (curr.distractions === 0 && curr.durationSeconds > 300) p += 50; 
         return acc + p;
       }, 0));
 
-      // Streak logic simplified for vanilla
-      const dates = [...new Set(history.map(h => new Date(h.date).setHours(0,0,0,0)))].sort((a,b) => b-a);
-      let streak = dates.length > 0 ? 1 : 0;
-      // (Simple streak calculation for demo purposes)
+      // Advanced Stats
+      const longMeditationCount = history.filter(s => s.durationSeconds >= 45 * 60).length;
+      const focusedSessionCount = history.filter(s => s.distractions <= 1).length;
+      const silentSessionCount = history.filter(s => s.distractions === 0).length;
+      const long30Count = history.filter(s => s.durationSeconds >= 30 * 60).length;
+
+      // Streak Logic
+      const sortedDates = history.map(s => new Date(s.date).setHours(0,0,0,0)).sort((a,b) => b-a);
+      const uniqueDates = Array.from(new Set(sortedDates));
+      let maxStreak = uniqueDates.length > 0 ? 1 : 0;
+      let tempStreak = 1;
+      for(let i=0; i<uniqueDates.length-1; i++){
+        if(uniqueDates[i] - uniqueDates[i+1] === 86400000) tempStreak++;
+        else tempStreak = 1;
+        if(tempStreak > maxStreak) maxStreak = tempStreak;
+      }
       
-      return { 
-        totalSessions, totalMinutes, maxStreak: streak, points, 
-        longMeditationCount: history.filter(s => s.durationSeconds >= 45*60).length,
-        focusedSessionCount: history.filter(s => s.distractions <= 1).length,
-        silentSessionCount: history.filter(s => s.distractions === 0).length,
-        long30Count: history.filter(s => s.durationSeconds >= 30*60).length,
-        hourStreak: 0 // Placeholder
-      };
+      // Hour Streak Logic (Simplified for brevity)
+      const hourDates = history.filter(s => s.durationSeconds >= 3600).map(s => new Date(s.date).setHours(0,0,0,0)).sort((a,b) => b-a);
+      const uniqueHourDates = Array.from(new Set(hourDates));
+      let hourStreak = uniqueHourDates.length > 0 ? 1 : 0;
+      let tempH = 1;
+      for(let i=0; i<uniqueHourDates.length-1; i++){
+        if(uniqueHourDates[i] - uniqueHourDates[i+1] === 86400000) tempH++;
+        else tempH = 1;
+        if(tempH > hourStreak) hourStreak = tempH;
+      }
+      
+      return { totalSessions, totalMinutes, maxStreak, points, longMeditationCount, focusedSessionCount, silentSessionCount, long30Count, hourStreak };
     }
 
     function getLevel(points) {
       const levels = [
         { min: 0, en: 'Novice', es: 'Novato' },
-        { min: 100, en: 'Seeker', es: 'Buscador' },
-        { min: 400, en: 'Initiate', es: 'Iniciado' },
-        { min: 800, en: 'Adept', es: 'Adepto' },
-        { min: 1500, en: 'Master', es: 'Maestro' },
-        { min: 3000, en: 'Sage', es: 'Sabio' },
-        { min: 6000, en: 'Buddha', es: 'Buda' }
+        { min: 1000, en: 'Seeker', es: 'Buscador' },
+        { min: 4000, en: 'Initiate', es: 'Iniciado' },
+        { min: 8000, en: 'Adept', es: 'Adepto' },
+        { min: 15000, en: 'Master', es: 'Maestro' },
+        { min: 30000, en: 'Sage', es: 'Sabio' },
+        { min: 60000, en: 'Zen Master', es: 'Maestro Zen' },
+        { min: 100000, en: 'Buddha', es: 'Buda' }
       ];
       let lvl = levels[0];
       let nextLvl = levels[1];
       for(let i=levels.length-1; i>=0; i--) {
         if(points >= levels[i].min) {
           lvl = levels[i];
-          nextLvl = levels[i+1] || { min: points * 1.5 }; // fallback
+          nextLvl = levels[i+1] || { min: points * 1.5 }; 
           break;
         }
       }
@@ -276,6 +318,7 @@
       else if (view === 'HISTORY') renderHistory();
       else if (view === 'BADGES') renderBadges();
       else if (view === 'LEARN') renderLearn();
+      else if (view === 'BADGE_POPUP') renderBadgePopup();
     }
 
     function toggleLang() {
@@ -379,6 +422,9 @@
                 <input type="range" min="1" max="60" value="${State.duration}" 
                   class="w-full mt-8 h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-500"
                   oninput="updateDuration(this.value)">
+                <div class="flex justify-between text-xs text-slate-400 mt-2 font-medium">
+                  <span>1m</span><span>30m</span><span>60m</span>
+                </div>
               </div>
             </div>
 
@@ -524,12 +570,16 @@
       if(completed) {
         alarmAudio.currentTime = 0;
         alarmAudio.play().catch(e=>console.log(e));
+        // Stop alarm after 4 seconds
+        setTimeout(() => {
+          alarmAudio.pause();
+          alarmAudio.currentTime = 0;
+        }, 4000);
       }
 
       // Calculate Data
       const totalDuration = (State.duration * 60) - State.activeSession.timeLeft;
       
-      // If manually stopped very early, maybe just discard? But user clicked Save.
       // Calc Avg Interval
       const timestamps = [...State.activeSession.timestamps, Date.now()];
       let avg = totalDuration;
@@ -547,15 +597,32 @@
         avgIntervalSeconds: avg
       };
 
+      // CHECK BADGES BEFORE SAVING
+      const prevHistory = getHistory();
+      const prevStats = calculateStats(prevHistory);
+      
       saveSession(sessionData);
+      
+      const newHistory = getHistory();
+      const newStats = calculateStats(newHistory);
+      
       State.lastSession = sessionData; // temp store for summary
-      navigate('SUMMARY');
+      
+      // Find new unlocked badges
+      const newBadges = BADGE_DEFINITIONS.filter(b => !b.condition(prevStats) && b.condition(newStats));
+      
+      if(newBadges.length > 0) {
+        State.newUnlockedBadges = newBadges;
+        navigate('BADGE_POPUP');
+      } else {
+        navigate('SUMMARY');
+      }
     }
 
     function renderActive() {
       const t = TRANSLATIONS[State.lang];
       app.innerHTML = `
-        <div id="active-container" class="w-full h-full bg-brand-50 relative overflow-hidden flex flex-col items-center justify-center" onclick="recordDistraction()">
+        <div id="active-container" class="w-full h-full bg-brand-50 relative overflow-hidden flex flex-col items-center justify-center z-0" onclick="recordDistraction()">
           
           <!-- Stop Button (Top Right) -->
           <button onclick="event.stopPropagation(); togglePause()" class="absolute top-6 right-6 z-50 p-3 bg-white/50 backdrop-blur rounded-full text-slate-600 hover:bg-white hover:text-red-500 shadow-sm transition-all">
@@ -595,6 +662,41 @@
       `;
     }
 
+    // --- BADGE POPUP ---
+    function renderBadgePopup() {
+      const badge = State.newUnlockedBadges[0];
+      const t = TRANSLATIONS[State.lang];
+      const title = State.lang === 'es' ? badge.title_es : badge.title_en;
+      const desc = State.lang === 'es' ? badge.description_es : badge.description_en;
+
+      app.innerHTML = `
+        <div class="flex flex-col h-full items-center justify-center p-6 bg-brand-600 animate-pop-in text-white text-center relative overflow-hidden">
+           <!-- Particles background (simulated) -->
+           <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=')]"></div>
+
+           <div class="text-8xl mb-6 animate-bounce-slow relative z-10">${badge.icon}</div>
+           <h2 class="text-3xl font-bold mb-2 relative z-10">${t.newBadge}</h2>
+           <div class="bg-white/10 p-6 rounded-3xl backdrop-blur-sm border border-white/20 mb-8 relative z-10">
+             <h3 class="text-2xl font-bold text-white mb-2">${title}</h3>
+             <p class="text-brand-100 text-lg">${desc}</p>
+           </div>
+           
+           <button onclick="closeBadgePopup()" class="w-full py-4 rounded-2xl font-bold bg-white text-brand-600 shadow-xl hover:bg-brand-50 relative z-10">
+             ${t.awesome}
+           </button>
+        </div>
+      `;
+    }
+
+    function closeBadgePopup() {
+      State.newUnlockedBadges.shift(); // Remove first
+      if (State.newUnlockedBadges.length > 0) {
+        renderBadgePopup(); // Show next
+      } else {
+        navigate('SUMMARY');
+      }
+    }
+
     // --- SUMMARY ---
     function renderSummary() {
       const session = State.lastSession;
@@ -628,7 +730,7 @@
             </div>
           </div>
 
-          <button onclick="navigate('HOME')" class="mt-auto w-full py-3 px-6 rounded-2xl font-semibold bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700">
+          <button onclick="navigate('HOME')" class="mt-auto w-full py-4 px-6 rounded-2xl font-semibold bg-brand-600 text-white shadow-lg shadow-brand-200 hover:bg-brand-700 transition-all">
             ${t.backHome}
           </button>
         </div>
@@ -647,16 +749,16 @@
             <h2 class="text-xl font-bold ml-2 text-slate-800">${t.history}</h2>
           </div>
 
-          <!-- Chart Container -->
+          <!-- Chart Container (Last 50 sessions) -->
           <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-6 h-48 w-full shrink-0 relative">
              <canvas id="historyChart"></canvas>
           </div>
 
-          <!-- List -->
+          <!-- List (Last 5 sessions) -->
           <div class="flex-1 overflow-y-auto -mx-6 px-6 pb-4 space-y-4 scrollbar-hide">
             ${history.length === 0 ? `<div class="text-center py-10 opacity-50"><div class="mx-auto mb-2 text-slate-300 w-12 h-12 flex justify-center">${Icons.Calendar}</div><p>No sessions yet.</p></div>` : ''}
             
-            ${history.map((h, i) => {
+            ${history.slice(0, 5).map((h, i) => {
               const isGood = h.avgIntervalSeconds > 60;
               return `
                 <div class="bg-white p-4 rounded-2xl border border-slate-50 shadow-sm flex flex-col gap-2 relative overflow-hidden group">
@@ -686,7 +788,8 @@
       if(history.length > 0) {
         // Draw Chart.js
         const ctx = document.getElementById('historyChart').getContext('2d');
-        const dataPoints = history.slice(0, 10).reverse(); // Last 10
+        // Chart shows last 50 for trends
+        const dataPoints = history.slice(0, 50).reverse(); 
         new Chart(ctx, {
           type: 'line',
           data: {
@@ -697,9 +800,13 @@
               borderColor: '#0d9488',
               backgroundColor: '#ccfbf1',
               tension: 0.4,
-              pointRadius: 4,
+              pointRadius: 3,
               pointBackgroundColor: '#0d9488',
-              borderWidth: 2
+              borderWidth: 2,
+              fill: {
+                target: 'origin',
+                above: 'rgba(13, 148, 136, 0.1)' 
+              }
             }]
           },
           options: {
@@ -710,7 +817,7 @@
               x: { display: false },
               y: { display: false, min: 0 }
             },
-            layout: { padding: 10 }
+            layout: { padding: 5 }
           }
         });
       }
@@ -720,16 +827,6 @@
     function renderBadges() {
       const t = TRANSLATIONS[State.lang];
       const stats = calculateStats(getHistory());
-      const badges = [
-        { id: 1, en: "First Step", es: "Primer Paso", icon: "🌱", desc_en: "First session.", desc_es: "Primera sesión.", cond: s => s.totalSessions >= 1 },
-        { id: 2, en: "3-Day Streak", es: "Racha 3 Días", icon: "🔥", desc_en: "3 days row.", desc_es: "3 días seguidos.", cond: s => s.maxStreak >= 3 },
-        { id: 3, en: "7-Day Streak", es: "Racha 7 Días", icon: "🗓️", desc_en: "7 days row.", desc_es: "7 días seguidos.", cond: s => s.maxStreak >= 7 },
-        { id: 6, en: "Deep Diver", es: "Buceador", icon: "🌊", desc_en: "Session > 45m.", desc_es: "Sesión > 45m.", cond: s => s.longMeditationCount >= 1 },
-        { id: 7, en: "Laser Focus", es: "Enfoque Láser", icon: "🎯", desc_en: "<= 1 distraction.", desc_es: "<= 1 distracción.", cond: s => s.focusedSessionCount >= 1 },
-        { id: 8, en: "Silent Mind", es: "Mente Silenciosa", icon: "🤫", desc_en: "0 distractions.", desc_es: "0 distracciones.", cond: s => s.silentSessionCount >= 1 },
-        { id: 10, en: "Dedicated", es: "Dedicado", icon: "🏅", desc_en: "10 sessions.", desc_es: "10 sesiones.", cond: s => s.totalSessions >= 10 },
-        { id: 12, en: "Marathon", es: "Maratón", icon: "⏳", desc_en: "300 total mins.", desc_es: "300 mins totales.", cond: s => s.totalMinutes >= 300 },
-      ];
 
       app.innerHTML = `
         <div class="flex flex-col h-full p-6">
@@ -738,15 +835,16 @@
             <h2 class="text-xl font-bold ml-2 text-slate-800">${t.achievements}</h2>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 overflow-y-auto pb-6 scrollbar-hide">
-            ${badges.map(b => {
-              const unlocked = b.cond(stats);
+          <div class="grid grid-cols-2 gap-3 overflow-y-auto pb-6 scrollbar-hide -mx-2 px-2">
+            ${BADGE_DEFINITIONS.map(b => {
+              const unlocked = b.condition(stats);
               return `
-                <div class="p-4 rounded-2xl border text-center transition-all relative overflow-hidden group ${unlocked ? 'bg-white border-brand-100 shadow-sm' : 'bg-slate-50 border-transparent'}">
+                <div class="p-4 rounded-2xl border text-center transition-all relative overflow-hidden group flex flex-col items-center justify-center min-h-[150px]
+                  ${unlocked ? 'bg-white border-brand-100 shadow-sm' : 'bg-slate-50 border-transparent'}">
                   ${!unlocked ? '<div class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10"></div>' : '<div class="absolute top-2 right-2 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>'}
                   <div class="text-4xl mb-3 ${unlocked ? '' : 'grayscale opacity-50'}">${b.icon}</div>
-                  <h3 class="font-bold text-sm mb-1 ${unlocked ? 'text-slate-800' : 'text-slate-400'}">${State.lang==='es'?b.es:b.en}</h3>
-                  <p class="text-[10px] text-slate-500">${State.lang==='es'?b.desc_es:b.desc_en}</p>
+                  <h3 class="font-bold text-sm mb-1 leading-tight ${unlocked ? 'text-slate-800' : 'text-slate-400'}">${State.lang==='es'?b.title_es:b.title_en}</h3>
+                  <p class="text-[10px] text-slate-500 leading-tight px-1">${State.lang==='es'?b.description_es:b.description_en}</p>
                 </div>
               `;
             }).join('')}
